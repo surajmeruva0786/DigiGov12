@@ -1962,3 +1962,345 @@ showOfficialDashboard = function() {
     initializeNotificationSystem();
     updateNotificationBadge();
 };
+
+let globalSearchResults = {
+    schemes: [],
+    complaints: [],
+    payments: [],
+    children: [],
+    documents: []
+};
+
+let currentSearchTerm = '';
+let voiceSearchRecognition = null;
+
+function performGlobalSearch() {
+    const searchTerm = document.getElementById('global-search-input').value.trim();
+    
+    if (searchTerm.length === 0) {
+        document.getElementById('global-search-status').textContent = '';
+        return;
+    }
+    
+    if (searchTerm.length < 2) {
+        document.getElementById('global-search-status').textContent = 'Type at least 2 characters to search';
+        return;
+    }
+    
+    currentSearchTerm = searchTerm;
+    performSearch(searchTerm);
+    
+    const resultCount = Object.values(globalSearchResults).reduce((sum, arr) => sum + arr.length, 0);
+    document.getElementById('global-search-status').textContent = `Found ${resultCount} result${resultCount !== 1 ? 's' : ''}. Click to view all →`;
+    document.getElementById('global-search-status').style.cursor = 'pointer';
+    document.getElementById('global-search-status').onclick = showGlobalSearchResults;
+}
+
+function performSearch(searchTerm) {
+    const term = searchTerm.toLowerCase();
+    
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    globalSearchResults.schemes = schemes.filter(s => 
+        s.name.toLowerCase().includes(term) ||
+        s.description.toLowerCase().includes(term) ||
+        s.benefits.toLowerCase().includes(term) ||
+        s.eligibility.toLowerCase().includes(term)
+    );
+    
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const userComplaints = complaints.filter(c => c.userId === currentUser.phone);
+    globalSearchResults.complaints = userComplaints.filter(c =>
+        c.id.toLowerCase().includes(term) ||
+        c.department.toLowerCase().includes(term) ||
+        c.description.toLowerCase().includes(term) ||
+        c.status.toLowerCase().includes(term)
+    );
+    
+    const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+    const userPayments = payments.filter(p => p.userId === currentUser.phone);
+    globalSearchResults.payments = userPayments.filter(p =>
+        p.id.toLowerCase().includes(term) ||
+        p.billType.toLowerCase().includes(term) ||
+        p.consumerNumber.toLowerCase().includes(term) ||
+        p.upiApp.toLowerCase().includes(term)
+    );
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    globalSearchResults.children = userChildren.filter(c =>
+        c.name.toLowerCase().includes(term) ||
+        c.school.toLowerCase().includes(term) ||
+        c.class.toLowerCase().includes(term)
+    );
+    
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const userDocuments = documents.filter(d => d.userId === currentUser.phone);
+    globalSearchResults.documents = userDocuments.filter(d =>
+        d.name.toLowerCase().includes(term) ||
+        d.type.toLowerCase().includes(term) ||
+        d.fileName.toLowerCase().includes(term)
+    );
+}
+
+function showGlobalSearchResults() {
+    document.getElementById('search-results-input').value = currentSearchTerm;
+    populateDepartmentFilter();
+    showScreen('global-search-results-screen');
+    displaySearchResults();
+}
+
+function performGlobalSearchFromResults() {
+    const searchTerm = document.getElementById('search-results-input').value.trim();
+    currentSearchTerm = searchTerm;
+    
+    if (searchTerm.length < 2) {
+        document.getElementById('search-results-display').innerHTML = '<p class="search-info">Type at least 2 characters to search</p>';
+        return;
+    }
+    
+    performSearch(searchTerm);
+    applyFilters();
+}
+
+function populateDepartmentFilter() {
+    const departments = JSON.parse(localStorage.getItem('departments') || '[]');
+    const deptFilter = document.getElementById('filter-complaint-dept');
+    deptFilter.innerHTML = '<option value="">All Departments</option>';
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        deptFilter.appendChild(option);
+    });
+}
+
+function applyFilters() {
+    const complaintDept = document.getElementById('filter-complaint-dept').value;
+    const complaintStatus = document.getElementById('filter-complaint-status').value;
+    const documentType = document.getElementById('filter-document-type').value;
+    const paymentType = document.getElementById('filter-payment-type').value;
+    
+    let filteredResults = { ...globalSearchResults };
+    
+    if (complaintDept) {
+        filteredResults.complaints = filteredResults.complaints.filter(c => c.department === complaintDept);
+    }
+    if (complaintStatus) {
+        filteredResults.complaints = filteredResults.complaints.filter(c => c.status === complaintStatus);
+    }
+    
+    if (documentType) {
+        filteredResults.documents = filteredResults.documents.filter(d => d.type === documentType);
+    }
+    
+    if (paymentType) {
+        filteredResults.payments = filteredResults.payments.filter(p => p.billType === paymentType);
+    }
+    
+    displaySearchResults(filteredResults);
+}
+
+function clearAllFilters() {
+    document.getElementById('filter-complaint-dept').value = '';
+    document.getElementById('filter-complaint-status').value = '';
+    document.getElementById('filter-document-type').value = '';
+    document.getElementById('filter-payment-type').value = '';
+    displaySearchResults();
+}
+
+function displaySearchResults(results = globalSearchResults) {
+    const display = document.getElementById('search-results-display');
+    
+    if (currentSearchTerm.length < 2) {
+        display.innerHTML = '<p class="search-info">Enter a search term to find results across Schemes, Complaints, Payments, Children, and Documents</p>';
+        return;
+    }
+    
+    const totalResults = Object.values(results).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (totalResults === 0) {
+        display.innerHTML = `<p class="no-results">No results found for "${sanitizeHTML(currentSearchTerm)}"</p>`;
+        return;
+    }
+    
+    let html = `<div class="search-summary">Found ${totalResults} result${totalResults !== 1 ? 's' : ''} for "${sanitizeHTML(currentSearchTerm)}"</div>`;
+    
+    if (results.schemes.length > 0) {
+        html += `<div class="search-category">
+            <h3 class="category-header">📋 Government Schemes (${results.schemes.length})</h3>`;
+        results.schemes.forEach(scheme => {
+            html += `
+                <div class="search-result-item scheme-result">
+                    <h4>${highlightText(scheme.name, currentSearchTerm)}</h4>
+                    <p><strong>Description:</strong> ${highlightText(scheme.description, currentSearchTerm)}</p>
+                    <p><strong>Benefits:</strong> ${highlightText(scheme.benefits, currentSearchTerm)}</p>
+                    <span class="result-badge scheme-badge">${scheme.type}</span>
+                </div>`;
+        });
+        html += '</div>';
+    }
+    
+    if (results.complaints.length > 0) {
+        html += `<div class="search-category">
+            <h3 class="category-header">📝 Complaints (${results.complaints.length})</h3>`;
+        results.complaints.forEach(complaint => {
+            const statusClass = complaint.status.toLowerCase().replace(/\s+/g, '-');
+            html += `
+                <div class="search-result-item complaint-result">
+                    <h4>ID: ${highlightText(complaint.id, currentSearchTerm)}</h4>
+                    <p><strong>Department:</strong> ${highlightText(complaint.department, currentSearchTerm)}</p>
+                    <p><strong>Description:</strong> ${highlightText(complaint.description, currentSearchTerm)}</p>
+                    <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleDateString()}</p>
+                    <span class="result-badge complaint-status status-${statusClass}">${complaint.status}</span>
+                </div>`;
+        });
+        html += '</div>';
+    }
+    
+    if (results.payments.length > 0) {
+        html += `<div class="search-category">
+            <h3 class="category-header">💰 Payments (${results.payments.length})</h3>`;
+        results.payments.forEach(payment => {
+            html += `
+                <div class="search-result-item payment-result">
+                    <h4>${highlightText(payment.billType, currentSearchTerm)} Bill - ₹${payment.amount}</h4>
+                    <p><strong>Payment ID:</strong> ${highlightText(payment.id, currentSearchTerm)}</p>
+                    <p><strong>Consumer:</strong> ${highlightText(payment.consumerNumber, currentSearchTerm)}</p>
+                    <p><strong>Paid via:</strong> ${highlightText(payment.upiApp, currentSearchTerm)}</p>
+                    <p><strong>Date:</strong> ${new Date(payment.timestamp).toLocaleDateString()}</p>
+                    <span class="result-badge payment-badge">✓ ${payment.status}</span>
+                </div>`;
+        });
+        html += '</div>';
+    }
+    
+    if (results.children.length > 0) {
+        html += `<div class="search-category">
+            <h3 class="category-header">👶 Children (${results.children.length})</h3>`;
+        results.children.forEach(child => {
+            html += `
+                <div class="search-result-item child-result">
+                    <h4>${highlightText(child.name, currentSearchTerm)}</h4>
+                    <p><strong>Age:</strong> ${child.age} years</p>
+                    <p><strong>School:</strong> ${highlightText(child.school, currentSearchTerm)}</p>
+                    <p><strong>Class:</strong> ${highlightText(child.class, currentSearchTerm)}</p>
+                    <span class="result-badge child-badge">Child Profile</span>
+                </div>`;
+        });
+        html += '</div>';
+    }
+    
+    if (results.documents.length > 0) {
+        html += `<div class="search-category">
+            <h3 class="category-header">📄 Documents (${results.documents.length})</h3>`;
+        results.documents.forEach(doc => {
+            html += `
+                <div class="search-result-item document-result">
+                    <h4>${highlightText(doc.name, currentSearchTerm)}</h4>
+                    <p><strong>Type:</strong> ${highlightText(doc.type, currentSearchTerm)}</p>
+                    <p><strong>File:</strong> ${highlightText(doc.fileName, currentSearchTerm)}</p>
+                    <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                    <span class="result-badge document-badge">${doc.type}</span>
+                </div>`;
+        });
+        html += '</div>';
+    }
+    
+    display.innerHTML = html;
+}
+
+function highlightText(text, searchTerm) {
+    if (!searchTerm || searchTerm.length < 2) return sanitizeHTML(text);
+    
+    const safeText = sanitizeHTML(text);
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return safeText.replace(regex, '<mark>$1</mark>');
+}
+
+function startGlobalVoiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    voiceSearchRecognition = new SpeechRecognition();
+    voiceSearchRecognition.lang = 'en-IN';
+    voiceSearchRecognition.continuous = false;
+    voiceSearchRecognition.interimResults = false;
+    
+    const voiceBtn = document.getElementById('global-voice-btn');
+    const searchInput = document.getElementById('global-search-input');
+    
+    voiceSearchRecognition.onstart = function() {
+        voiceBtn.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+        voiceBtn.style.animation = 'pulse 1.5s infinite';
+        searchInput.placeholder = 'Listening...';
+        document.getElementById('global-search-status').textContent = '🎤 Listening...';
+    };
+    
+    voiceSearchRecognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        searchInput.value = transcript;
+        performGlobalSearch();
+    };
+    
+    voiceSearchRecognition.onerror = function(event) {
+        alert('Voice recognition error: ' + event.error);
+        resetVoiceButton();
+    };
+    
+    voiceSearchRecognition.onend = function() {
+        resetVoiceButton();
+    };
+    
+    voiceSearchRecognition.start();
+}
+
+function startSearchResultsVoiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    const searchInput = document.getElementById('search-results-input');
+    
+    recognition.onstart = function() {
+        searchInput.placeholder = 'Listening...';
+    };
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        searchInput.value = transcript;
+        performGlobalSearchFromResults();
+    };
+    
+    recognition.onerror = function(event) {
+        alert('Voice recognition error: ' + event.error);
+        searchInput.placeholder = 'Search across all services...';
+    };
+    
+    recognition.onend = function() {
+        searchInput.placeholder = 'Search across all services...';
+    };
+    
+    recognition.start();
+}
+
+function resetVoiceButton() {
+    const voiceBtn = document.getElementById('global-voice-btn');
+    const searchInput = document.getElementById('global-search-input');
+    if (voiceBtn) {
+        voiceBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        voiceBtn.style.animation = 'none';
+    }
+    if (searchInput) {
+        searchInput.placeholder = 'Search across all services...';
+    }
+}

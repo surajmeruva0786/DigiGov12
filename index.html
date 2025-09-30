@@ -204,6 +204,16 @@
                     <div id="complaints-summary"></div>
                 </div>
             </div>
+            
+            <div class="global-search-section">
+                <h3>🔍 Global Search</h3>
+                <div class="global-search-box">
+                    <input type="text" id="global-search-input" placeholder="Search across all services..." oninput="performGlobalSearch()">
+                    <button class="voice-btn" id="global-voice-btn" onclick="startGlobalVoiceSearch()">🎤</button>
+                </div>
+                <div id="global-search-status" class="search-status"></div>
+            </div>
+
             <div class="modules-container">
                 <div class="module-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showGovernmentSchemes()">
                     <div class="module-icon">📋</div>
@@ -229,6 +239,65 @@
                     <div class="module-icon">📄</div>
                     <h3>Documents</h3>
                     <p>Manage documents</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="global-search-results-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showUserDashboard()">← Back</button>
+                <h2>Search Results</h2>
+            </div>
+            <div class="global-search-results-container">
+                <div class="search-controls">
+                    <div class="global-search-box">
+                        <input type="text" id="search-results-input" placeholder="Search across all services..." oninput="performGlobalSearchFromResults()">
+                        <button class="voice-btn" onclick="startSearchResultsVoiceSearch()">🎤</button>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h4>Filters</h4>
+                        <div class="filter-groups">
+                            <div class="filter-group">
+                                <label>Complaints</label>
+                                <select id="filter-complaint-dept" onchange="applyFilters()">
+                                    <option value="">All Departments</option>
+                                </select>
+                                <select id="filter-complaint-status" onchange="applyFilters()">
+                                    <option value="">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Documents</label>
+                                <select id="filter-document-type" onchange="applyFilters()">
+                                    <option value="">All Types</option>
+                                    <option value="Aadhaar Card">Aadhaar Card</option>
+                                    <option value="Ration Card">Ration Card</option>
+                                    <option value="Birth Certificate">Birth Certificate</option>
+                                    <option value="Income Certificate">Income Certificate</option>
+                                    <option value="Caste Certificate">Caste Certificate</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Payments</label>
+                                <select id="filter-payment-type" onchange="applyFilters()">
+                                    <option value="">All Services</option>
+                                    <option value="Electricity">Electricity</option>
+                                    <option value="Water">Water</option>
+                                    <option value="Gas">Gas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" onclick="clearAllFilters()">Clear All Filters</button>
+                    </div>
+                </div>
+
+                <div id="search-results-display">
+                    <p class="search-info">Enter a search term to find results across Schemes, Complaints, Payments, Children, and Documents</p>
                 </div>
             </div>
         </div>
