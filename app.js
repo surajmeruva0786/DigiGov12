@@ -2304,3 +2304,361 @@ function resetVoiceButton() {
         searchInput.placeholder = 'Search across all services...';
     }
 }
+
+function showUserAnalytics() {
+    displayUserAnalytics();
+    showScreen('user-analytics-screen');
+}
+
+function showOfficialAnalytics() {
+    displayOfficialAnalytics();
+    showScreen('official-analytics-screen');
+}
+
+function displayUserAnalytics() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const userComplaints = complaints.filter(c => c.userId === currentUser.phone);
+    
+    const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+    const userPayments = payments.filter(p => p.userId === currentUser.phone);
+    
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const userDocuments = documents.filter(d => d.userId === currentUser.phone);
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    
+    document.getElementById('user-total-complaints').textContent = userComplaints.length;
+    displayUserComplaintsChart(userComplaints);
+    
+    const totalAmount = userPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    document.getElementById('user-total-payments').textContent = userPayments.length;
+    document.getElementById('user-total-amount').textContent = `₹${totalAmount.toFixed(2)}`;
+    displayUserPaymentsChart(userPayments);
+    
+    document.getElementById('user-total-documents').textContent = userDocuments.length;
+    displayUserDocumentsBreakdown(userDocuments);
+    
+    displayUserChildrenAttendance(userChildren);
+}
+
+function displayUserComplaintsChart(complaints) {
+    const statusCounts = {};
+    complaints.forEach(c => {
+        statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
+    });
+    
+    const breakdownEl = document.getElementById('user-complaints-breakdown');
+    const canvas = document.getElementById('user-complaints-chart');
+    
+    if (Object.keys(statusCounts).length === 0) {
+        breakdownEl.innerHTML = '<p class="no-data-message">No complaints data available</p>';
+        if (canvas) {
+            canvas.style.display = 'none';
+        }
+        return;
+    }
+    
+    if (canvas) {
+        canvas.style.display = 'block';
+    }
+    
+    const colors = {
+        'Pending': '#ffc107',
+        'In Progress': '#17a2b8',
+        'Resolved': '#28a745',
+        'Verified': '#6f42c1'
+    };
+    
+    const total = complaints.length;
+    breakdownEl.innerHTML = Object.entries(statusCounts).map(([status, count]) => {
+        const percentage = ((count / total) * 100).toFixed(1);
+        const color = colors[status] || '#667eea';
+        return `
+            <div class="breakdown-item">
+                <span class="breakdown-label">${status}</span>
+                <div class="breakdown-bar" style="background: ${color}; width: ${percentage}%;"></div>
+                <span class="breakdown-value">${count} (${percentage}%)</span>
+            </div>
+        `;
+    }).join('');
+    
+    drawPieChart('user-complaints-chart', statusCounts, colors);
+}
+
+function displayUserPaymentsChart(payments) {
+    const billTypeCounts = {};
+    payments.forEach(p => {
+        billTypeCounts[p.billType] = (billTypeCounts[p.billType] || 0) + parseFloat(p.amount);
+    });
+    
+    const canvas = document.getElementById('user-payments-chart');
+    const container = canvas.parentElement;
+    
+    let noDataMsg = container.querySelector('.no-data-message');
+    
+    if (Object.keys(billTypeCounts).length === 0) {
+        canvas.style.display = 'none';
+        if (!noDataMsg) {
+            noDataMsg = document.createElement('p');
+            noDataMsg.className = 'no-data-message';
+            noDataMsg.textContent = 'No payment data available';
+            container.appendChild(noDataMsg);
+        }
+        noDataMsg.style.display = 'block';
+        return;
+    }
+    
+    canvas.style.display = 'block';
+    if (noDataMsg) {
+        noDataMsg.style.display = 'none';
+    }
+    
+    const colors = {
+        'Electricity': '#ffc107',
+        'Water': '#17a2b8',
+        'Gas': '#dc3545'
+    };
+    
+    drawBarChart('user-payments-chart', billTypeCounts, colors);
+}
+
+function displayUserDocumentsBreakdown(documents) {
+    const typeCounts = {};
+    documents.forEach(d => {
+        typeCounts[d.type] = (typeCounts[d.type] || 0) + 1;
+    });
+    
+    const breakdownEl = document.getElementById('user-documents-breakdown');
+    if (Object.keys(typeCounts).length === 0) {
+        breakdownEl.innerHTML = '<p class="no-data-message">No documents uploaded yet</p>';
+        return;
+    }
+    
+    breakdownEl.innerHTML = Object.entries(typeCounts).map(([type, count]) => `
+        <div class="breakdown-item">
+            <span class="breakdown-label">${type}</span>
+            <span class="breakdown-value">${count} document${count > 1 ? 's' : ''}</span>
+        </div>
+    `).join('');
+}
+
+function displayUserChildrenAttendance(children) {
+    const attendanceEl = document.getElementById('user-children-attendance');
+    
+    if (children.length === 0) {
+        attendanceEl.innerHTML = '<p class="no-data-message">No children records available</p>';
+        return;
+    }
+    
+    attendanceEl.innerHTML = children.map(child => {
+        const streak = calculateStreak(child.attendance || []);
+        return `
+            <div class="child-attendance-card">
+                <h4>${child.name}</h4>
+                <div class="attendance-streak-display">
+                    <div class="streak-badge">🔥 ${streak}</div>
+                    <div class="streak-info">
+                        <p><strong>Current Streak</strong></p>
+                        <p>${streak} day${streak !== 1 ? 's' : ''} of consecutive attendance</p>
+                        <p>Total: ${(child.attendance || []).length} days attended</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function displayOfficialAnalytics() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    
+    document.getElementById('official-total-complaints').textContent = complaints.length;
+    
+    displayDepartmentComplaintsChart(complaints);
+    displayStatusChart(complaints);
+    displayCategoriesChart(complaints);
+}
+
+function displayDepartmentComplaintsChart(complaints) {
+    const deptCounts = {};
+    complaints.forEach(c => {
+        deptCounts[c.department] = (deptCounts[c.department] || 0) + 1;
+    });
+    
+    const breakdownEl = document.getElementById('dept-complaints-breakdown');
+    if (Object.keys(deptCounts).length === 0) {
+        breakdownEl.innerHTML = '<p class="no-data-message">No complaints data available</p>';
+        return;
+    }
+    
+    const sortedDepts = Object.entries(deptCounts).sort((a, b) => b[1] - a[1]);
+    const total = complaints.length;
+    
+    breakdownEl.innerHTML = sortedDepts.map(([dept, count]) => {
+        const percentage = ((count / total) * 100).toFixed(1);
+        return `
+            <div class="breakdown-item">
+                <span class="breakdown-label">${dept}</span>
+                <div class="breakdown-bar" style="width: ${percentage}%;"></div>
+                <span class="breakdown-value">${count} (${percentage}%)</span>
+            </div>
+        `;
+    }).join('');
+    
+    const colors = generateColors(Object.keys(deptCounts).length);
+    drawBarChart('dept-complaints-chart', deptCounts, colors);
+}
+
+function displayStatusChart(complaints) {
+    const statusCounts = {};
+    complaints.forEach(c => {
+        const status = c.status;
+        if (status === 'Pending' || status === 'In Progress') {
+            statusCounts['Pending'] = (statusCounts['Pending'] || 0) + 1;
+        } else {
+            statusCounts['Resolved'] = (statusCounts['Resolved'] || 0) + 1;
+        }
+    });
+    
+    const breakdownEl = document.getElementById('status-breakdown');
+    if (Object.keys(statusCounts).length === 0) {
+        breakdownEl.innerHTML = '<p class="no-data-message">No complaints data available</p>';
+        return;
+    }
+    
+    const total = complaints.length;
+    const colors = {
+        'Pending': '#ffc107',
+        'Resolved': '#28a745'
+    };
+    
+    breakdownEl.innerHTML = Object.entries(statusCounts).map(([status, count]) => {
+        const percentage = ((count / total) * 100).toFixed(1);
+        return `
+            <div class="breakdown-item">
+                <span class="breakdown-label">${status}</span>
+                <div class="breakdown-bar" style="background: ${colors[status]}; width: ${percentage}%;"></div>
+                <span class="breakdown-value">${count} (${percentage}%)</span>
+            </div>
+        `;
+    }).join('');
+    
+    drawPieChart('status-chart', statusCounts, colors);
+}
+
+function displayCategoriesChart(complaints) {
+    const deptCounts = {};
+    complaints.forEach(c => {
+        deptCounts[c.department] = (deptCounts[c.department] || 0) + 1;
+    });
+    
+    const sortedDepts = Object.entries(deptCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    
+    const breakdownEl = document.getElementById('categories-breakdown');
+    if (sortedDepts.length === 0) {
+        breakdownEl.innerHTML = '<p class="no-data-message">No complaints data available</p>';
+        return;
+    }
+    
+    breakdownEl.innerHTML = sortedDepts.map(([dept, count], index) => {
+        const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index] || '';
+        return `
+            <div class="breakdown-item">
+                <span class="breakdown-label">${medal} ${dept}</span>
+                <span class="breakdown-value">${count} complaints</span>
+            </div>
+        `;
+    }).join('');
+    
+    const chartData = {};
+    sortedDepts.forEach(([dept, count]) => {
+        chartData[dept] = count;
+    });
+    
+    const colors = generateColors(sortedDepts.length);
+    drawBarChart('categories-chart', chartData, colors);
+}
+
+function drawPieChart(canvasId, data, colors) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = 300;
+    const height = 300;
+    canvas.width = width;
+    canvas.height = height;
+    
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    
+    const total = Object.values(data).reduce((sum, val) => sum + val, 0);
+    let currentAngle = -Math.PI / 2;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    Object.entries(data).forEach(([label, value]) => {
+        const sliceAngle = (value / total) * 2 * Math.PI;
+        const color = colors[label] || '#667eea';
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        currentAngle += sliceAngle;
+    });
+}
+
+function drawBarChart(canvasId, data, colors) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = 400;
+    const height = 300;
+    canvas.width = width;
+    canvas.height = height;
+    
+    const padding = 40;
+    const chartWidth = width - 2 * padding;
+    const chartHeight = height - 2 * padding;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    const entries = Object.entries(data);
+    const maxValue = Math.max(...Object.values(data));
+    const barWidth = chartWidth / entries.length - 10;
+    
+    entries.forEach(([label, value], index) => {
+        const barHeight = (value / maxValue) * chartHeight;
+        const x = padding + index * (chartWidth / entries.length);
+        const y = height - padding - barHeight;
+        
+        const colorKey = Object.keys(colors)[index % Object.keys(colors).length];
+        const color = colors[colorKey] || colors[label] || '#667eea';
+        
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, barWidth, barHeight);
+        
+        ctx.fillStyle = '#333';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(value.toString(), x + barWidth / 2, y - 5);
+    });
+}
+
+function generateColors(count) {
+    const baseColors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a', '#fee140'];
+    const colors = {};
+    for (let i = 0; i < count; i++) {
+        colors[i] = baseColors[i % baseColors.length];
+    }
+    return colors;
+}

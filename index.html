@@ -214,6 +214,8 @@
                 <div id="global-search-status" class="search-status"></div>
             </div>
 
+            <button class="analytics-nav-btn" onclick="showUserAnalytics()">📊 View My Analytics</button>
+            
             <div class="modules-container">
                 <div class="module-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showGovernmentSchemes()">
                     <div class="module-icon">📋</div>
@@ -645,6 +647,8 @@
                     <p><strong>Category:</strong> <span id="official-cat-display"></span></p>
                 </div>
 
+                <button class="analytics-nav-btn" onclick="showOfficialAnalytics()">📊 View Analytics Dashboard</button>
+
                 <div class="complaints-management-section">
                     <h3>Complaints - <span id="official-dept-complaints"></span></h3>
                     <div id="official-complaints-list"></div>
@@ -674,6 +678,99 @@
                 <button class="notification-close-btn" onclick="toggleNotificationCenter()">×</button>
             </div>
             <div id="notifications-list" class="notifications-list"></div>
+        </div>
+
+        <div id="user-analytics-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showUserDashboard()">← Back</button>
+                <h2>My Analytics</h2>
+            </div>
+            <div class="analytics-container">
+                <div class="analytics-card">
+                    <h3>📊 Complaints Overview</h3>
+                    <div class="analytics-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="user-total-complaints">0</div>
+                            <div class="stat-label">Total Complaints</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="user-complaints-chart"></canvas>
+                    </div>
+                    <div id="user-complaints-breakdown" class="breakdown-list"></div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>💰 Payment Summary</h3>
+                    <div class="analytics-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="user-total-payments">0</div>
+                            <div class="stat-label">Total Payments</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="user-total-amount">₹0</div>
+                            <div class="stat-label">Total Amount</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="user-payments-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>📄 Documents Statistics</h3>
+                    <div class="analytics-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="user-total-documents">0</div>
+                            <div class="stat-label">Total Documents</div>
+                        </div>
+                    </div>
+                    <div id="user-documents-breakdown" class="breakdown-list"></div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>👶 Children Attendance</h3>
+                    <div id="user-children-attendance" class="children-attendance-analytics"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="official-analytics-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showOfficialDashboard()">← Back</button>
+                <h2>Analytics Dashboard</h2>
+            </div>
+            <div class="analytics-container">
+                <div class="analytics-card">
+                    <h3>📊 Complaints by Department</h3>
+                    <div class="chart-container">
+                        <canvas id="dept-complaints-chart"></canvas>
+                    </div>
+                    <div id="dept-complaints-breakdown" class="breakdown-list"></div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>📈 Pending vs Resolved</h3>
+                    <div class="analytics-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="official-total-complaints">0</div>
+                            <div class="stat-label">Total Complaints</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="status-chart"></canvas>
+                    </div>
+                    <div id="status-breakdown" class="breakdown-list"></div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>🏆 Most Common Categories</h3>
+                    <div class="chart-container">
+                        <canvas id="categories-chart"></canvas>
+                    </div>
+                    <div id="categories-breakdown" class="breakdown-list"></div>
+                </div>
+            </div>
         </div>
     </div>
 
