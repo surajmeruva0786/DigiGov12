@@ -1516,3 +1516,449 @@ function deleteDocument(docId) {
         }
     }
 }
+
+function getCurrentUserId() {
+    if (currentUser) return currentUser.phone;
+    if (currentOfficial) return 'official_' + currentOfficial.email;
+    return null;
+}
+
+function createNotification(type, title, message, userId, data = {}) {
+    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    
+    const notification = {
+        id: 'N' + Date.now(),
+        type: type,
+        title: title,
+        message: message,
+        userId: userId,
+        data: data,
+        read: false,
+        createdAt: new Date().toISOString()
+    };
+    
+    notifications.push(notification);
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    
+    const currentId = getCurrentUserId();
+    if (currentId && currentId === userId) {
+        showNotificationPopup(notification);
+        speakNotification(notification);
+    }
+    
+    updateNotificationBadge();
+    return notification;
+}
+
+function getUserNotifications(userId, unreadOnly = false) {
+    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    let userNotifications = notifications.filter(n => n.userId === userId);
+    
+    if (unreadOnly) {
+        userNotifications = userNotifications.filter(n => !n.read);
+    }
+    
+    return userNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+function markNotificationAsRead(notificationId) {
+    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const index = notifications.findIndex(n => n.id === notificationId);
+    
+    if (index !== -1) {
+        notifications[index].read = true;
+        localStorage.setItem('notifications', JSON.stringify(notifications));
+        updateNotificationBadge();
+    }
+}
+
+function deleteNotification(notificationId) {
+    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const filtered = notifications.filter(n => n.id !== notificationId);
+    localStorage.setItem('notifications', JSON.stringify(filtered));
+    updateNotificationBadge();
+}
+
+function updateNotificationBadge() {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    
+    const unreadNotifications = getUserNotifications(userId, true);
+    
+    const userBadge = document.getElementById('notification-badge');
+    const officialBadge = document.getElementById('notification-badge-official');
+    const badge = currentUser ? userBadge : officialBadge;
+    
+    if (badge) {
+        badge.textContent = unreadNotifications.length;
+        badge.style.display = unreadNotifications.length > 0 ? 'inline-block' : 'none';
+    }
+}
+
+function speakNotification(notification) {
+    const voicePreference = localStorage.getItem('voicePreference');
+    if (voicePreference === 'yes') {
+        const message = `${notification.title}. ${notification.message}`;
+        speak(message);
+    }
+}
+
+function showNotificationPopup(notification) {
+    const popup = document.createElement('div');
+    popup.className = 'notification-popup';
+    popup.innerHTML = `
+        <div class="notification-popup-content">
+            <div class="notification-popup-header">
+                <strong>${sanitizeHTML(notification.title)}</strong>
+                <button class="notification-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+            </div>
+            <p>${sanitizeHTML(notification.message)}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    setTimeout(() => {
+        popup.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        popup.classList.remove('show');
+        setTimeout(() => popup.remove(), 300);
+    }, 5000);
+}
+
+function toggleNotificationCenter() {
+    const center = document.getElementById('notification-center');
+    if (center.classList.contains('open')) {
+        center.classList.remove('open');
+    } else {
+        center.classList.add('open');
+        displayNotifications();
+    }
+}
+
+function displayNotifications() {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    
+    const notifications = getUserNotifications(userId);
+    const container = document.getElementById('notifications-list');
+    
+    if (notifications.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No notifications</p>';
+        return;
+    }
+    
+    container.innerHTML = notifications.map(n => `
+        <div class="notification-item ${n.read ? 'read' : 'unread'}" onclick="handleNotificationClick('${n.id}')">
+            <div class="notification-icon">${getNotificationIcon(n.type)}</div>
+            <div class="notification-content">
+                <h5>${sanitizeHTML(n.title)}</h5>
+                <p>${sanitizeHTML(n.message)}</p>
+                <small>${getTimeAgo(n.createdAt)}</small>
+            </div>
+            <button class="notification-delete" onclick="event.stopPropagation(); deleteNotificationAndRefresh('${n.id}')">×</button>
+        </div>
+    `).join('');
+}
+
+function getNotificationIcon(type) {
+    const icons = {
+        'school_attendance': '🎓',
+        'vaccination': '💉',
+        'bill_payment': '💰',
+        'complaint_update': '📝',
+        'general': '🔔'
+    };
+    return icons[type] || icons['general'];
+}
+
+function getTimeAgo(dateString) {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffMs = now - past;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+}
+
+function handleNotificationClick(notificationId) {
+    markNotificationAsRead(notificationId);
+    displayNotifications();
+}
+
+function deleteNotificationAndRefresh(notificationId) {
+    deleteNotification(notificationId);
+    displayNotifications();
+}
+
+function checkSchoolAttendanceReminders() {
+    if (!currentUser) return;
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    
+    userChildren.forEach(child => {
+        if (!child.school) return;
+        
+        const today = new Date().toDateString();
+        const hasAttendanceToday = child.attendance?.some(d => new Date(d).toDateString() === today);
+        
+        if (!hasAttendanceToday) {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            if (hour >= 7 && hour < 9) {
+                const existingReminder = getUserNotifications(currentUser.phone)
+                    .find(n => n.type === 'school_attendance' && 
+                               n.data.childId === child.id &&
+                               new Date(n.createdAt).toDateString() === today);
+                
+                if (!existingReminder) {
+                    createNotification(
+                        'school_attendance',
+                        'School Attendance Reminder',
+                        `Don't forget to mark attendance for ${child.name} at ${child.school}`,
+                        currentUser.phone,
+                        { childId: child.id, childName: child.name, school: child.school }
+                    );
+                }
+            }
+        }
+    });
+}
+
+function checkVaccinationReminders() {
+    if (!currentUser) return;
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    
+    userChildren.forEach(child => {
+        child.vaccinations?.forEach(vacc => {
+            const dueDate = new Date(vacc.dueDate);
+            const today = new Date();
+            const diffTime = dueDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0 || diffDays === 1 || diffDays === 3 || diffDays === 7) {
+                const todayStr = today.toDateString();
+                const existingReminder = getUserNotifications(currentUser.phone)
+                    .find(n => n.type === 'vaccination' && 
+                               n.data.vaccineId === vacc.id &&
+                               new Date(n.createdAt).toDateString() === todayStr);
+                
+                if (!existingReminder && vacc.status !== 'Completed') {
+                    const message = diffDays === 0 
+                        ? `${child.name}'s ${vacc.name} vaccination is due today!`
+                        : diffDays === 1
+                        ? `${child.name}'s ${vacc.name} vaccination is due tomorrow`
+                        : `${child.name}'s ${vacc.name} vaccination is due in ${diffDays} days`;
+                    
+                    createNotification(
+                        'vaccination',
+                        'Vaccination Reminder',
+                        message,
+                        currentUser.phone,
+                        { childId: child.id, childName: child.name, vaccineId: vacc.id, vaccineName: vacc.name, dueDate: vacc.dueDate }
+                    );
+                }
+            }
+        });
+    });
+}
+
+function checkBillPaymentReminders() {
+    if (!currentUser) return;
+    
+    const bills = JSON.parse(localStorage.getItem('billReminders') || '[]');
+    const userBills = bills.filter(b => b.userId === currentUser.phone);
+    
+    userBills.forEach(bill => {
+        const dueDate = new Date(bill.dueDate);
+        const today = new Date();
+        const diffTime = dueDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays >= 0 && diffDays <= 3) {
+            const todayStr = today.toDateString();
+            const existingReminder = getUserNotifications(currentUser.phone)
+                .find(n => n.type === 'bill_payment' && 
+                           n.data.billId === bill.id &&
+                           new Date(n.createdAt).toDateString() === todayStr);
+            
+            if (!existingReminder && bill.status !== 'Paid') {
+                const message = diffDays === 0
+                    ? `Your ${bill.type} bill is due today! Amount: ₹${bill.amount}`
+                    : `Your ${bill.type} bill is due in ${diffDays} day${diffDays > 1 ? 's' : ''}. Amount: ₹${bill.amount}`;
+                
+                createNotification(
+                    'bill_payment',
+                    'Bill Payment Reminder',
+                    message,
+                    currentUser.phone,
+                    { billId: bill.id, billType: bill.type, amount: bill.amount, dueDate: bill.dueDate }
+                );
+            }
+        }
+    });
+}
+
+function checkComplaintStatusChanges() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const lastCheck = localStorage.getItem('lastComplaintCheck') || '{}';
+    const lastCheckData = JSON.parse(lastCheck);
+    
+    complaints.forEach(complaint => {
+        const previousStatus = lastCheckData[complaint.id];
+        
+        if (previousStatus && previousStatus !== complaint.status) {
+            const existingNotification = getUserNotifications(complaint.userId)
+                .find(n => n.type === 'complaint_update' && 
+                           n.data.complaintId === complaint.id &&
+                           n.data.newStatus === complaint.status);
+            
+            if (!existingNotification) {
+                createNotification(
+                    'complaint_update',
+                    'Complaint Status Updated',
+                    `Your complaint ${complaint.id} status changed from "${previousStatus}" to "${complaint.status}"`,
+                    complaint.userId,
+                    { complaintId: complaint.id, oldStatus: previousStatus, newStatus: complaint.status, department: complaint.department }
+                );
+            }
+        }
+        
+        lastCheckData[complaint.id] = complaint.status;
+    });
+    
+    localStorage.setItem('lastComplaintCheck', JSON.stringify(lastCheckData));
+}
+
+function initializeComplaintStatusTracking() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const lastCheckData = {};
+    
+    complaints.forEach(complaint => {
+        lastCheckData[complaint.id] = complaint.status;
+    });
+    
+    localStorage.setItem('lastComplaintCheck', JSON.stringify(lastCheckData));
+}
+
+function runAllNotificationChecks() {
+    if (currentUser) {
+        checkSchoolAttendanceReminders();
+        checkVaccinationReminders();
+        checkBillPaymentReminders();
+        checkComplaintStatusChanges();
+        updateNotificationBadge();
+    }
+}
+
+function initializeNotificationSystem() {
+    if (!localStorage.getItem('lastComplaintCheck')) {
+        initializeComplaintStatusTracking();
+    }
+    
+    runAllNotificationChecks();
+    
+    setInterval(runAllNotificationChecks, 60000);
+    
+    const hour = new Date().getHours();
+    if (hour >= 7 && hour < 9) {
+        setTimeout(checkSchoolAttendanceReminders, 5000);
+    }
+}
+
+window.addEventListener('load', function() {
+    if (currentUser || currentOfficial) {
+        initializeNotificationSystem();
+    }
+});
+
+function saveBillReminder(billType, amount, dueDate) {
+    if (!currentUser) return;
+    
+    const bills = JSON.parse(localStorage.getItem('billReminders') || '[]');
+    
+    const bill = {
+        id: 'BR' + Date.now(),
+        userId: currentUser.phone,
+        type: billType,
+        amount: amount,
+        dueDate: dueDate,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+    };
+    
+    bills.push(bill);
+    localStorage.setItem('billReminders', JSON.stringify(bills));
+    
+    checkBillPaymentReminders();
+    return bill;
+}
+
+function markBillAsPaid(billId) {
+    const bills = JSON.parse(localStorage.getItem('billReminders') || '[]');
+    const index = bills.findIndex(b => b.id === billId);
+    
+    if (index !== -1) {
+        bills[index].status = 'Paid';
+        bills[index].paidAt = new Date().toISOString();
+        localStorage.setItem('billReminders', JSON.stringify(bills));
+    }
+}
+
+const originalShowUserDashboard = showUserDashboard;
+showUserDashboard = function() {
+    originalShowUserDashboard();
+    initializeNotificationSystem();
+    updateNotificationBadge();
+};
+
+
+function createComplaintNotificationForOfficial(complaintId, userId, oldStatus, newStatus, department) {
+    const officials = JSON.parse(localStorage.getItem('officials') || '[]');
+    const deptOfficials = officials.filter(o => o.department === department);
+    
+    deptOfficials.forEach(official => {
+        const officialId = 'official_' + official.email;
+        createNotification(
+            'complaint_update',
+            'Complaint Updated',
+            `Complaint ${complaintId} status changed from "${oldStatus}" to "${newStatus}"`,
+            officialId,
+            { complaintId, oldStatus, newStatus, department, originalUserId: userId }
+        );
+    });
+}
+
+const originalUpdateComplaintStatus2 = updateComplaintStatus;
+updateComplaintStatus = function(complaintId, newStatus) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaint = complaints.find(c => c.id === complaintId);
+    const oldStatus = complaint ? complaint.status : null;
+    
+    originalUpdateComplaintStatus2(complaintId, newStatus);
+    
+    if (complaint) {
+        setTimeout(() => {
+            checkComplaintStatusChanges();
+            createComplaintNotificationForOfficial(complaintId, complaint.userId, oldStatus, newStatus, complaint.department);
+        }, 500);
+    }
+};
+
+const originalShowOfficialDashboard = showOfficialDashboard;
+showOfficialDashboard = function() {
+    originalShowOfficialDashboard();
+    initializeNotificationSystem();
+    updateNotificationBadge();
+};

@@ -187,8 +187,12 @@
 
         <div id="user-dashboard-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="logout()">← Logout</button>
+                <button class="back-btn logout-btn" onclick="logout()">Logout →</button>
                 <h2>Welcome, <span id="user-name-display"></span>!</h2>
+                <button class="notification-bell" onclick="toggleNotificationCenter()">
+                    🔔
+                    <span id="notification-badge" class="notification-badge">0</span>
+                </button>
             </div>
             <div class="dashboard-summary">
                 <div class="summary-card">
@@ -554,8 +558,12 @@
 
         <div id="official-dashboard-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="logout()">← Logout</button>
+                <button class="back-btn logout-btn" onclick="logout()">Logout →</button>
                 <h2>Official Dashboard</h2>
+                <button class="notification-bell" onclick="toggleNotificationCenter()">
+                    🔔
+                    <span id="notification-badge-official" class="notification-badge">0</span>
+                </button>
             </div>
             <div class="dashboard-container">
                 <div class="welcome-message">
@@ -589,6 +597,14 @@
                     <button type="button" class="btn-secondary" onclick="closeComplaintDetailModal()">Close</button>
                 </div>
             </div>
+        </div>
+
+        <div id="notification-center" class="notification-center">
+            <div class="notification-center-header">
+                <h3>Notifications</h3>
+                <button class="notification-close-btn" onclick="toggleNotificationCenter()">×</button>
+            </div>
+            <div id="notifications-list" class="notifications-list"></div>
         </div>
     </div>
 
