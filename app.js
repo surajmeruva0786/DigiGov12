@@ -1,0 +1,1072 @@
+let currentUser = null;
+let currentOfficial = null;
+
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
+}
+
+function showHome() {
+    showScreen('home-screen');
+}
+
+function showUserLogin() {
+    showScreen('user-login-screen');
+}
+
+function showUserRegister() {
+    showScreen('user-register-screen');
+}
+
+function showOfficialLogin() {
+    showScreen('official-login-screen');
+}
+
+function showOfficialRegister() {
+    showScreen('official-register-screen');
+}
+
+function showVoiceSetup() {
+    showScreen('voice-setup-screen');
+}
+
+function addFamilyMember() {
+    const familyContainer = document.getElementById('family-members');
+    const memberDiv = document.createElement('div');
+    memberDiv.className = 'family-member';
+    memberDiv.innerHTML = `
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" class="family-name" placeholder="Family member name">
+        </div>
+        <div class="form-group">
+            <label>Relationship</label>
+            <input type="text" class="family-relation" placeholder="e.g., Spouse, Child">
+        </div>
+        <div class="form-group">
+            <label>Age</label>
+            <input type="number" class="family-age" placeholder="Age">
+        </div>
+    `;
+    familyContainer.appendChild(memberDiv);
+}
+
+document.getElementById('user-aadhaar-photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const preview = document.getElementById('aadhaar-preview');
+            preview.innerHTML = `<img src="${event.target.result}" alt="Aadhaar Preview">`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('user-register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const aadhaar = document.getElementById('user-aadhaar').value;
+    const phone = document.getElementById('user-phone').value;
+    const email = document.getElementById('user-email').value;
+    const password = document.getElementById('user-password').value;
+    const address = document.getElementById('user-address').value;
+    
+    const aadhaarPhotoFile = document.getElementById('user-aadhaar-photo').files[0];
+    
+    if (!aadhaarPhotoFile) {
+        alert('Please upload Aadhaar photo');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const aadhaarPhoto = event.target.result;
+        
+        const familyMembers = [];
+        document.querySelectorAll('.family-member').forEach(member => {
+            const name = member.querySelector('.family-name').value;
+            const relation = member.querySelector('.family-relation').value;
+            const age = member.querySelector('.family-age').value;
+            
+            if (name && relation && age) {
+                familyMembers.push({ name, relation, age });
+            }
+        });
+        
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        if (users.find(u => u.phone === phone)) {
+            alert('User with this phone number already exists');
+            return;
+        }
+        
+        const newUser = {
+            aadhaar,
+            phone,
+            email,
+            password,
+            address,
+            aadhaarPhoto,
+            familyMembers,
+            createdAt: new Date().toISOString()
+        };
+        
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        alert('Registration successful! Please login.');
+        showUserLogin();
+        document.getElementById('user-register-form').reset();
+        document.getElementById('aadhaar-preview').innerHTML = '';
+    };
+    
+    reader.readAsDataURL(aadhaarPhotoFile);
+});
+
+document.getElementById('user-login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const phone = document.getElementById('user-login-phone').value;
+    const password = document.getElementById('user-login-password').value;
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.phone === phone && u.password === password);
+    
+    if (user) {
+        currentUser = user;
+        
+        const voicePreference = localStorage.getItem('voicePreference');
+        if (voicePreference === null) {
+            showVoiceSetup();
+        } else {
+            showUserDashboard();
+        }
+        
+        document.getElementById('user-login-form').reset();
+    } else {
+        alert('Invalid phone number or password');
+    }
+});
+
+document.getElementById('official-register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('official-name').value;
+    const email = document.getElementById('official-email').value;
+    const password = document.getElementById('official-password').value;
+    const qualification = document.getElementById('official-qualification').value;
+    const department = document.getElementById('official-department').value;
+    const category = document.getElementById('official-category').value;
+    
+    const officials = JSON.parse(localStorage.getItem('officials') || '[]');
+    
+    if (officials.find(o => o.email === email)) {
+        alert('Official with this email already exists');
+        return;
+    }
+    
+    const newOfficial = {
+        name,
+        email,
+        password,
+        qualification,
+        department,
+        category,
+        createdAt: new Date().toISOString()
+    };
+    
+    officials.push(newOfficial);
+    localStorage.setItem('officials', JSON.stringify(officials));
+    
+    alert('Registration successful! Please login.');
+    showOfficialLogin();
+    document.getElementById('official-register-form').reset();
+});
+
+document.getElementById('official-login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('official-login-email').value;
+    const password = document.getElementById('official-login-password').value;
+    
+    const officials = JSON.parse(localStorage.getItem('officials') || '[]');
+    const official = officials.find(o => o.email === email && o.password === password);
+    
+    if (official) {
+        currentOfficial = official;
+        
+        const voicePreference = localStorage.getItem('voicePreference');
+        if (voicePreference === null) {
+            showVoiceSetup();
+        } else {
+            showOfficialDashboard();
+        }
+        
+        document.getElementById('official-login-form').reset();
+    } else {
+        alert('Invalid email or password');
+    }
+});
+
+function setVoicePreference(enabled) {
+    localStorage.setItem('voicePreference', enabled ? 'yes' : 'no');
+    
+    if (currentUser) {
+        showUserDashboard();
+    } else if (currentOfficial) {
+        showOfficialDashboard();
+    }
+}
+
+function showUserDashboard() {
+    document.getElementById('user-name-display').textContent = currentUser.email.split('@')[0];
+    showScreen('user-dashboard-screen');
+}
+
+function showOfficialDashboard() {
+    document.getElementById('official-name-display').textContent = currentOfficial.name;
+    document.getElementById('official-dept-display').textContent = currentOfficial.department;
+    document.getElementById('official-qual-display').textContent = currentOfficial.qualification;
+    
+    const categoryText = currentOfficial.category === '1' ? 'Complaint Handler' : 'Verifier';
+    document.getElementById('official-cat-display').textContent = categoryText;
+    
+    showScreen('official-dashboard-screen');
+}
+
+function logout() {
+    currentUser = null;
+    currentOfficial = null;
+    showHome();
+}
+
+const stateMapping = {
+    '1': 'Delhi',
+    '2': 'Maharashtra',
+    '3': 'Karnataka',
+    '4': 'Tamil Nadu',
+    '5': 'Gujarat',
+    '6': 'West Bengal',
+    '7': 'Rajasthan',
+    '8': 'Uttar Pradesh'
+};
+
+function getStateFromAadhaar(aadhaar) {
+    const firstDigit = aadhaar.charAt(0);
+    return stateMapping[firstDigit] || 'Unknown';
+}
+
+function initializeSchemesData() {
+    if (!localStorage.getItem('schemes')) {
+        const schemes = [
+            { id: 1, name: 'Pradhan Mantri Awas Yojana', description: 'Housing for all - Urban', type: 'Central', benefits: 'Financial assistance for home construction', eligibility: 'EWS/LIG families' },
+            { id: 2, name: 'Ayushman Bharat', description: 'Health insurance scheme', type: 'Central', benefits: 'Rs 5 lakh health cover', eligibility: 'Below poverty line families' },
+            { id: 3, name: 'PM-KISAN', description: 'Income support for farmers', type: 'Central', benefits: 'Rs 6000 per year', eligibility: 'Small and marginal farmers' },
+            { id: 4, name: 'National Education Policy', description: 'Education reforms', type: 'Central', benefits: 'Free quality education', eligibility: 'All students' },
+            { id: 5, name: 'Delhi Education Scheme', description: 'Free education in government schools', type: 'Delhi', benefits: 'Free books and uniforms', eligibility: 'Delhi residents' },
+            { id: 6, name: 'Maharashtra Farm Support', description: 'Support for farmers', type: 'Maharashtra', benefits: 'Financial aid for crops', eligibility: 'Maharashtra farmers' },
+            { id: 7, name: 'Karnataka Skill Development', description: 'Vocational training program', type: 'Karnataka', benefits: 'Free skill training', eligibility: 'Youth in Karnataka' },
+            { id: 8, name: 'Tamil Nadu Health Scheme', description: 'Free healthcare services', type: 'Tamil Nadu', benefits: 'Free medical treatment', eligibility: 'Tamil Nadu residents' }
+        ];
+        localStorage.setItem('schemes', JSON.stringify(schemes));
+    }
+}
+
+function initializeDepartments() {
+    if (!localStorage.getItem('departments')) {
+        const departments = [
+            'Revenue Department',
+            'Health Department',
+            'Education Department',
+            'Transport Department',
+            'Water Supply',
+            'Electricity Board',
+            'Police Department',
+            'Municipal Corporation',
+            'Agriculture Department'
+        ];
+        localStorage.setItem('departments', JSON.stringify(departments));
+    }
+}
+
+function showGovernmentSchemes() {
+    initializeSchemesData();
+    const state = getStateFromAadhaar(currentUser.aadhaar);
+    document.getElementById('user-state-display').textContent = `State: ${state}`;
+    
+    displaySchemes();
+    showScreen('government-schemes-screen');
+}
+
+function displaySchemes(filter = '') {
+    const state = getStateFromAadhaar(currentUser.aadhaar);
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    const schemesList = document.getElementById('schemes-list');
+    
+    const filteredSchemes = schemes.filter(scheme => {
+        const matchesState = scheme.type === 'Central' || scheme.type === state;
+        const matchesSearch = filter === '' || 
+            scheme.name.toLowerCase().includes(filter.toLowerCase()) ||
+            scheme.description.toLowerCase().includes(filter.toLowerCase()) ||
+            scheme.benefits.toLowerCase().includes(filter.toLowerCase());
+        return matchesState && matchesSearch;
+    });
+    
+    if (filteredSchemes.length === 0) {
+        schemesList.innerHTML = '<p style="text-align: center; color: #666;">No schemes found</p>';
+        return;
+    }
+    
+    schemesList.innerHTML = filteredSchemes.map(scheme => `
+        <div class="scheme-card">
+            <h4>${scheme.name}</h4>
+            <p><strong>Description:</strong> ${scheme.description}</p>
+            <p><strong>Benefits:</strong> ${scheme.benefits}</p>
+            <p><strong>Eligibility:</strong> ${scheme.eligibility}</p>
+            <span class="scheme-type">${scheme.type}</span>
+        </div>
+    `).join('');
+}
+
+function searchSchemes() {
+    const searchTerm = document.getElementById('scheme-search').value;
+    displaySchemes(searchTerm);
+}
+
+let recognition;
+
+function startVoiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onstart = function() {
+        document.getElementById('scheme-search').placeholder = 'Listening...';
+    };
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('scheme-search').value = transcript;
+        searchSchemes();
+    };
+    
+    recognition.onerror = function(event) {
+        alert('Voice recognition error: ' + event.error);
+        document.getElementById('scheme-search').placeholder = 'Search schemes...';
+    };
+    
+    recognition.onend = function() {
+        document.getElementById('scheme-search').placeholder = 'Search schemes...';
+    };
+    
+    recognition.start();
+}
+
+function startVoiceComplaint() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('quick-complaint-text').value = transcript;
+    };
+    
+    recognition.onerror = function(event) {
+        alert('Voice recognition error: ' + event.error);
+    };
+    
+    recognition.start();
+}
+
+function submitQuickComplaint() {
+    const complaintText = document.getElementById('quick-complaint-text').value.trim();
+    
+    if (!complaintText) {
+        alert('Please enter a complaint');
+        return;
+    }
+    
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintId = 'C' + Date.now();
+    
+    const newComplaint = {
+        id: complaintId,
+        userId: currentUser.phone,
+        department: 'General',
+        description: complaintText,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+    };
+    
+    complaints.push(newComplaint);
+    localStorage.setItem('complaints', JSON.stringify(complaints));
+    
+    alert('Complaint submitted successfully! ID: ' + complaintId);
+    document.getElementById('quick-complaint-text').value = '';
+}
+
+function showComplaints() {
+    initializeDepartments();
+    displayDepartments();
+    displayUserComplaints();
+    showScreen('complaints-screen');
+}
+
+function displayDepartments() {
+    const departments = JSON.parse(localStorage.getItem('departments') || '[]');
+    const departmentsList = document.getElementById('departments-list');
+    
+    departmentsList.innerHTML = departments.map(dept => `
+        <div class="department-card" onclick="selectDepartment('${dept}')">
+            <h4>${dept}</h4>
+        </div>
+    `).join('');
+}
+
+let selectedDept = '';
+
+function selectDepartment(department) {
+    selectedDept = department;
+    document.getElementById('selected-department').textContent = department;
+    document.getElementById('complaint-form-section').style.display = 'block';
+    document.getElementById('complaint-description').value = '';
+}
+
+function cancelComplaint() {
+    selectedDept = '';
+    document.getElementById('complaint-form-section').style.display = 'none';
+    document.getElementById('complaint-description').value = '';
+}
+
+function startVoiceComplaintForm() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('complaint-description').value = transcript;
+    };
+    
+    recognition.onerror = function(event) {
+        alert('Voice recognition error: ' + event.error);
+    };
+    
+    recognition.start();
+}
+
+document.getElementById('complaint-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const description = document.getElementById('complaint-description').value.trim();
+    
+    if (!description) {
+        alert('Please enter complaint description');
+        return;
+    }
+    
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintId = 'C' + Date.now();
+    
+    const newComplaint = {
+        id: complaintId,
+        userId: currentUser.phone,
+        department: selectedDept,
+        description: description,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+    };
+    
+    complaints.push(newComplaint);
+    localStorage.setItem('complaints', JSON.stringify(complaints));
+    
+    alert('Complaint submitted successfully! ID: ' + complaintId);
+    
+    cancelComplaint();
+    displayUserComplaints();
+});
+
+function displayUserComplaints() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const userComplaints = complaints.filter(c => c.userId === currentUser.phone);
+    const complaintsItems = document.getElementById('complaints-items');
+    
+    if (userComplaints.length === 0) {
+        complaintsItems.innerHTML = '<p style="text-align: center; color: #666;">No complaints filed yet</p>';
+        return;
+    }
+    
+    complaintsItems.innerHTML = userComplaints.map(complaint => `
+        <div class="complaint-item">
+            <h4>Complaint ID: ${complaint.id}</h4>
+            <p><strong>Department:</strong> ${complaint.department}</p>
+            <p><strong>Description:</strong> ${complaint.description}</p>
+            <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+            <span class="complaint-status status-${complaint.status.toLowerCase()}">${complaint.status}</span>
+        </div>
+    `).join('');
+}
+
+function showChildren() {
+    showScreen('children-screen');
+}
+
+function showBillPayments() {
+    showScreen('bill-payments-screen');
+}
+
+function showDocuments() {
+    showScreen('documents-screen');
+}
+
+let selectedBillType = '';
+let currentBillPayment = null;
+let currentChildId = null;
+
+function speak(text) {
+    const voicePreference = localStorage.getItem('voicePreference');
+    if (voicePreference === 'yes' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-IN';
+        utterance.rate = 0.9;
+        speechSynthesis.speak(utterance);
+    }
+}
+
+function showBillPayments() {
+    speak("Bill Payments module. Please select the type of bill you want to pay.");
+    displayPaymentHistory();
+    showScreen('bill-payments-screen');
+}
+
+function selectBillType(type) {
+    selectedBillType = type;
+    document.getElementById('selected-bill-type').textContent = type;
+    document.getElementById('bill-payment-form-section').style.display = 'block';
+    document.getElementById('consumer-number').value = '';
+    document.getElementById('bill-amount').value = '';
+    speak(`${type} bill selected. Please enter consumer number and amount.`);
+}
+
+function cancelBillPayment() {
+    selectedBillType = '';
+    document.getElementById('bill-payment-form-section').style.display = 'none';
+}
+
+function startVoiceConsumerNumber() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser.');
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.replace(/\s/g, '');
+        document.getElementById('consumer-number').value = transcript;
+        speak(`Consumer number ${transcript} entered.`);
+    };
+    recognition.start();
+}
+
+function startVoiceAmount() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser.');
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.replace(/\D/g, '');
+        document.getElementById('bill-amount').value = transcript;
+        speak(`Amount ${transcript} rupees entered.`);
+    };
+    recognition.start();
+}
+
+document.getElementById('bill-payment-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const consumerNumber = document.getElementById('consumer-number').value;
+    const amount = document.getElementById('bill-amount').value;
+    
+    currentBillPayment = {
+        type: selectedBillType,
+        consumerNumber,
+        amount,
+        timestamp: Date.now()
+    };
+    
+    speak("Please verify your PIN to proceed with payment.");
+    document.getElementById('pin-lock-modal').style.display = 'flex';
+    document.getElementById('pin1').focus();
+});
+
+function movePinFocus(current, nextId) {
+    if (current.value.length === 1 && nextId) {
+        document.getElementById(nextId).focus();
+    }
+}
+
+function submitPinVerify() {
+    const pin1 = document.getElementById('pin1').value;
+    const pin2 = document.getElementById('pin2').value;
+    const pin3 = document.getElementById('pin3').value;
+    const pin4 = document.getElementById('pin4').value;
+    
+    if (pin1 && pin2 && pin3 && pin4) {
+        const pin = pin1 + pin2 + pin3 + pin4;
+        
+        if (pin === '1234') {
+            closePinModal();
+            speak("PIN verified successfully. Please select a UPI app.");
+            document.getElementById('upi-simulation-modal').style.display = 'flex';
+        } else {
+            alert('Incorrect PIN. Please try again with 1234.');
+            clearPinInputs();
+        }
+    }
+}
+
+function clearPinInputs() {
+    document.getElementById('pin1').value = '';
+    document.getElementById('pin2').value = '';
+    document.getElementById('pin3').value = '';
+    document.getElementById('pin4').value = '';
+    document.getElementById('pin1').focus();
+}
+
+function closePinModal() {
+    document.getElementById('pin-lock-modal').style.display = 'none';
+    clearPinInputs();
+}
+
+function processUPIPayment(upiApp) {
+    speak(`Redirecting to ${upiApp} for payment.`);
+    
+    setTimeout(() => {
+        speak("Payment successful!");
+        
+        const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+        const payment = {
+            id: 'P' + Date.now(),
+            userId: currentUser.phone,
+            billType: currentBillPayment.type,
+            consumerNumber: currentBillPayment.consumerNumber,
+            amount: currentBillPayment.amount,
+            upiApp: upiApp,
+            status: 'Success',
+            timestamp: new Date().toISOString()
+        };
+        
+        payments.push(payment);
+        localStorage.setItem('payments', JSON.stringify(payments));
+        
+        document.getElementById('upi-simulation-modal').style.display = 'none';
+        alert(`Payment of ₹${currentBillPayment.amount} successful via ${upiApp}!`);
+        
+        cancelBillPayment();
+        displayPaymentHistory();
+    }, 1500);
+}
+
+function displayPaymentHistory() {
+    const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+    const userPayments = payments.filter(p => p.userId === currentUser.phone);
+    const historyItems = document.getElementById('payment-history-items');
+    
+    if (userPayments.length === 0) {
+        historyItems.innerHTML = '<p style="text-align: center; color: #666;">No payment history</p>';
+        return;
+    }
+    
+    historyItems.innerHTML = userPayments.reverse().map(payment => `
+        <div class="payment-item">
+            <h4>${payment.billType} Bill - ₹${payment.amount}</h4>
+            <p><strong>Payment ID:</strong> ${payment.id}</p>
+            <p><strong>Consumer:</strong> ${payment.consumerNumber}</p>
+            <p><strong>Paid via:</strong> ${payment.upiApp}</p>
+            <p><strong>Date:</strong> ${new Date(payment.timestamp).toLocaleString()}</p>
+            <span class="payment-status">✓ ${payment.status}</span>
+        </div>
+    `).join('');
+}
+
+function showChildren() {
+    speak("Children module. You can add and manage child profiles here.");
+    displayChildrenList();
+    showScreen('children-screen');
+}
+
+function showAddChildForm() {
+    document.getElementById('add-child-form-section').style.display = 'block';
+    speak("Please enter child details.");
+}
+
+function cancelAddChild() {
+    document.getElementById('add-child-form-section').style.display = 'none';
+    document.getElementById('add-child-form').reset();
+}
+
+function startVoiceChildName() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser.');
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.onresult = function(event) {
+        document.getElementById('child-name').value = event.results[0][0].transcript;
+    };
+    recognition.start();
+}
+
+function startVoiceSchoolName() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition not supported in this browser.');
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.onresult = function(event) {
+        document.getElementById('child-school').value = event.results[0][0].transcript;
+    };
+    recognition.start();
+}
+
+document.getElementById('add-child-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const child = {
+        id: 'CH' + Date.now(),
+        userId: currentUser.phone,
+        name: document.getElementById('child-name').value,
+        age: document.getElementById('child-age').value,
+        school: document.getElementById('child-school').value,
+        class: document.getElementById('child-class').value,
+        attendance: [],
+        vaccinations: [],
+        resources: [],
+        createdAt: new Date().toISOString()
+    };
+    
+    children.push(child);
+    localStorage.setItem('children', JSON.stringify(children));
+    
+    speak(`${child.name} added successfully.`);
+    alert('Child added successfully!');
+    cancelAddChild();
+    displayChildrenList();
+});
+
+function displayChildrenList() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    const childrenList = document.getElementById('children-list');
+    
+    if (userChildren.length === 0) {
+        childrenList.innerHTML = '<p style="text-align: center; color: #666;">No children added yet</p>';
+        return;
+    }
+    
+    childrenList.innerHTML = userChildren.map(child => `
+        <div class="child-card" onclick="viewChildDetail('${child.id}')">
+            <h4>${child.name}</h4>
+            <p><strong>Age:</strong> ${child.age} years</p>
+            <p><strong>School:</strong> ${child.school}</p>
+            <p><strong>Class:</strong> ${child.class}</p>
+        </div>
+    `).join('');
+}
+
+function viewChildDetail(childId) {
+    currentChildId = childId;
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const child = children.find(c => c.id === childId);
+    
+    document.getElementById('child-detail-name').textContent = child.name;
+    speak(`Viewing details for ${child.name}.`);
+    
+    showChildTab('attendance');
+    showScreen('child-detail-screen');
+}
+
+function showChildTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    
+    event.target?.classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    if (tabName === 'attendance') {
+        displayAttendance();
+    } else if (tabName === 'vaccination') {
+        displayVaccinations();
+    } else if (tabName === 'learning') {
+        displayResources();
+    }
+}
+
+function displayAttendance() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const child = children.find(c => c.id === currentChildId);
+    
+    const today = new Date().toDateString();
+    const streak = calculateStreak(child.attendance);
+    
+    document.getElementById('streak-number').textContent = streak;
+    
+    const calendar = document.getElementById('attendance-calendar');
+    calendar.innerHTML = child.attendance.slice(-7).map(date => `
+        <div class="attendance-day">
+            <span>✓</span>
+            <p>${new Date(date).toLocaleDateString()}</p>
+        </div>
+    `).join('');
+}
+
+function calculateStreak(attendance) {
+    if (!attendance || attendance.length === 0) return 0;
+    
+    let streak = 0;
+    const today = new Date().setHours(0, 0, 0, 0);
+    
+    for (let i = attendance.length - 1; i >= 0; i--) {
+        const attDate = new Date(attendance[i]).setHours(0, 0, 0, 0);
+        const expectedDate = today - (streak * 24 * 60 * 60 * 1000);
+        
+        if (attDate === expectedDate) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    
+    return streak;
+}
+
+function markAttendance() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const childIndex = children.findIndex(c => c.id === currentChildId);
+    
+    const today = new Date().toDateString();
+    
+    if (children[childIndex].attendance.some(d => new Date(d).toDateString() === today)) {
+        alert('Attendance already marked for today!');
+        return;
+    }
+    
+    children[childIndex].attendance.push(new Date().toISOString());
+    localStorage.setItem('children', JSON.stringify(children));
+    
+    speak("Attendance marked successfully.");
+    alert('Attendance marked!');
+    displayAttendance();
+    
+    const streak = calculateStreak(children[childIndex].attendance);
+    if (streak > 0 && streak % 7 === 0) {
+        setTimeout(() => speak(`Great job! ${streak} day streak achieved!`), 1000);
+    }
+}
+
+function showAddVaccineForm() {
+    document.getElementById('add-vaccine-form').style.display = 'block';
+}
+
+function cancelAddVaccine() {
+    document.getElementById('add-vaccine-form').style.display = 'none';
+    document.getElementById('vaccine-form').reset();
+}
+
+document.getElementById('vaccine-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const childIndex = children.findIndex(c => c.id === currentChildId);
+    
+    const vaccination = {
+        id: 'V' + Date.now(),
+        name: document.getElementById('vaccine-name').value,
+        dueDate: document.getElementById('vaccine-date').value,
+        status: 'Pending'
+    };
+    
+    children[childIndex].vaccinations.push(vaccination);
+    localStorage.setItem('children', JSON.stringify(children));
+    
+    speak(`Vaccination reminder for ${vaccination.name} added.`);
+    alert('Vaccination reminder added!');
+    cancelAddVaccine();
+    displayVaccinations();
+    
+    checkVaccinationReminders();
+});
+
+function displayVaccinations() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const child = children.find(c => c.id === currentChildId);
+    const vaccList = document.getElementById('vaccination-list');
+    
+    if (!child.vaccinations || child.vaccinations.length === 0) {
+        vaccList.innerHTML = '<p style="text-align: center; color: #666;">No vaccinations added</p>';
+        return;
+    }
+    
+    vaccList.innerHTML = child.vaccinations.map(vacc => {
+        const daysUntil = Math.ceil((new Date(vacc.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const isOverdue = daysUntil < 0;
+        const isDueSoon = daysUntil >= 0 && daysUntil <= 7;
+        
+        return `
+            <div class="vaccination-item ${isOverdue ? 'overdue' : isDueSoon ? 'due-soon' : ''}">
+                <h4>${vacc.name}</h4>
+                <p><strong>Due Date:</strong> ${new Date(vacc.dueDate).toLocaleDateString()}</p>
+                <p><strong>Status:</strong> ${vacc.status}</p>
+                ${isOverdue ? '<p class="warning">⚠️ Overdue!</p>' : ''}
+                ${isDueSoon && !isOverdue ? '<p class="info">📅 Due soon!</p>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function checkVaccinationReminders() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const userChildren = children.filter(c => c.userId === currentUser.phone);
+    
+    userChildren.forEach(child => {
+        child.vaccinations?.forEach(vacc => {
+            const daysUntil = Math.ceil((new Date(vacc.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntil === 0) {
+                speak(`Reminder: ${child.name}'s ${vacc.name} vaccination is due today.`);
+            } else if (daysUntil === 1) {
+                speak(`Reminder: ${child.name}'s ${vacc.name} vaccination is due tomorrow.`);
+            }
+        });
+    });
+}
+
+function showAddResourceForm() {
+    document.getElementById('add-resource-form').style.display = 'block';
+    
+    document.getElementById('resource-type').addEventListener('change', function() {
+        const type = this.value;
+        document.getElementById('resource-file').style.display = type === 'PDF' ? 'block' : 'none';
+        document.getElementById('resource-url').style.display = type !== 'PDF' ? 'block' : 'none';
+    });
+}
+
+function cancelAddResource() {
+    document.getElementById('add-resource-form').style.display = 'none';
+    document.getElementById('resource-form').reset();
+}
+
+document.getElementById('resource-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const childIndex = children.findIndex(c => c.id === currentChildId);
+    
+    const type = document.getElementById('resource-type').value;
+    let resourceData = '';
+    
+    if (type === 'PDF') {
+        const file = document.getElementById('resource-file').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const resource = {
+                    id: 'R' + Date.now(),
+                    title: document.getElementById('resource-title').value,
+                    type: type,
+                    data: event.target.result,
+                    addedAt: new Date().toISOString()
+                };
+                
+                children[childIndex].resources.push(resource);
+                localStorage.setItem('children', JSON.stringify(children));
+                
+                speak(`Resource ${resource.title} added successfully.`);
+                alert('Resource added!');
+                cancelAddResource();
+                displayResources();
+            };
+            reader.readAsDataURL(file);
+        }
+    } else {
+        const resource = {
+            id: 'R' + Date.now(),
+            title: document.getElementById('resource-title').value,
+            type: type,
+            data: document.getElementById('resource-url').value,
+            addedAt: new Date().toISOString()
+        };
+        
+        children[childIndex].resources.push(resource);
+        localStorage.setItem('children', JSON.stringify(children));
+        
+        speak(`Resource ${resource.title} added successfully.`);
+        alert('Resource added!');
+        cancelAddResource();
+        displayResources();
+    }
+});
+
+function displayResources() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const child = children.find(c => c.id === currentChildId);
+    const resourcesList = document.getElementById('resources-list');
+    
+    if (!child.resources || child.resources.length === 0) {
+        resourcesList.innerHTML = '<p style="text-align: center; color: #666;">No resources added</p>';
+        return;
+    }
+    
+    resourcesList.innerHTML = child.resources.map(resource => `
+        <div class="resource-item">
+            <h4>${resource.title}</h4>
+            <p><strong>Type:</strong> ${resource.type}</p>
+            <p><strong>Added:</strong> ${new Date(resource.addedAt).toLocaleDateString()}</p>
+            ${resource.type === 'PDF' ? 
+                `<a href="${resource.data}" download="${resource.title}.pdf" class="btn-secondary">Download PDF</a>` :
+                `<a href="${resource.data}" target="_blank" class="btn-secondary">Open Link</a>`
+            }
+        </div>
+    `).join('');
+}
+
+setInterval(checkVaccinationReminders, 60000);
+
+window.addEventListener('load', function() {
+    if (currentUser) {
+        checkVaccinationReminders();
+    }
+});
