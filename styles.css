@@ -1055,3 +1055,149 @@ h3 {
         margin: 0 auto;
     }
 }
+
+.status-in.progress,
+.status-in {
+    background: #17a2b8;
+    color: white;
+}
+
+.status-verified {
+    background: #007bff;
+    color: white;
+}
+
+.documents-container {
+    padding: 20px;
+}
+
+.upload-document-form-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.document-preview {
+    margin-top: 10px;
+}
+
+.documents-list {
+    margin-top: 30px;
+}
+
+.document-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #fa709a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.document-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.document-item h4 {
+    color: #fa709a;
+    margin: 0;
+    font-size: clamp(15px, 2.5vw, 18px);
+}
+
+.document-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #fa709a;
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.document-item p {
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.document-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.document-actions .btn-secondary {
+    flex: 1;
+    min-width: 80px;
+    margin-top: 0;
+}
+
+.document-actions .delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+.document-actions .delete-btn:hover {
+    background: #c82333;
+}
+
+.complaints-management-section {
+    margin-top: 30px;
+}
+
+.complaint-detail-modal {
+    max-width: 600px;
+}
+
+.complaint-detail-modal h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#complaint-detail-content {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#complaint-detail-content p {
+    margin-bottom: 10px;
+}
+
+#complaint-actions-section {
+    margin-bottom: 20px;
+}
+
+#complaint-actions-section .btn-primary,
+#complaint-actions-section .btn-secondary {
+    margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+    .documents-container {
+        padding: 30px 40px;
+    }
+
+    .document-actions {
+        flex-wrap: nowrap;
+    }
+
+    .document-actions .btn-secondary {
+        flex: 0 1 auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .documents-container {
+        padding: 40px 60px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+}

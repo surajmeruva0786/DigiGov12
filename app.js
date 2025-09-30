@@ -235,6 +235,7 @@ function showOfficialDashboard() {
     document.getElementById('official-cat-display').textContent = categoryText;
     
     showScreen('official-dashboard-screen');
+    displayOfficialComplaints();
 }
 
 function logout() {
@@ -541,7 +542,145 @@ function showBillPayments() {
 }
 
 function showDocuments() {
+    displayUserDocuments();
     showScreen('documents-screen');
+
+function showUploadDocumentForm() {
+    document.getElementById('upload-document-form-section').style.display = 'block';
+    document.getElementById('document-type').value = '';
+    document.getElementById('document-name').value = '';
+    document.getElementById('document-file').value = '';
+    document.getElementById('document-preview').innerHTML = '';
+}
+
+function cancelUploadDocument() {
+    document.getElementById('upload-document-form-section').style.display = 'none';
+    document.getElementById('document-type').value = '';
+    document.getElementById('document-name').value = '';
+    document.getElementById('document-file').value = '';
+    document.getElementById('document-preview').innerHTML = '';
+}
+
+document.getElementById('document-file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const preview = document.getElementById('document-preview');
+            if (file.type.startsWith('image/')) {
+                preview.innerHTML = `<img src="${event.target.result}" alt="Document Preview" style="max-width: 100%; margin-top: 10px; border-radius: 8px;">`;
+            } else if (file.type === 'application/pdf') {
+                preview.innerHTML = `<p style="margin-top: 10px; color: #667eea;">📄 PDF file selected: ${file.name}</p>`;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('upload-document-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const documentType = document.getElementById('document-type').value;
+    const documentName = document.getElementById('document-name').value;
+    const documentFile = document.getElementById('document-file').files[0];
+    
+    if (!documentFile) {
+        alert('Please select a file to upload');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const documentData = event.target.result;
+        
+        const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+        const documentId = 'DOC' + Date.now();
+        
+        const newDocument = {
+            id: documentId,
+            userId: currentUser.phone,
+            type: documentType,
+            name: documentName,
+            fileName: documentFile.name,
+            fileType: documentFile.type,
+            fileData: documentData,
+            uploadedAt: new Date().toISOString()
+        };
+        
+        documents.push(newDocument);
+        localStorage.setItem('documents', JSON.stringify(documents));
+        
+        alert('Document uploaded successfully!');
+        cancelUploadDocument();
+        displayUserDocuments();
+    };
+    
+    reader.readAsDataURL(documentFile);
+});
+
+function displayUserDocuments() {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const userDocuments = documents.filter(d => d.userId === currentUser.phone);
+    const documentsItems = document.getElementById('documents-items');
+    
+    if (userDocuments.length === 0) {
+        documentsItems.innerHTML = '<p style="text-align: center; color: #666;">No documents uploaded yet</p>';
+        return;
+    }
+    
+    documentsItems.innerHTML = userDocuments.map(doc => `
+        <div class="document-item">
+            <div class="document-item-header">
+                <h4>${doc.name}</h4>
+                <span class="document-type-badge">${doc.type}</span>
+            </div>
+            <p><strong>File:</strong> ${doc.fileName}</p>
+            <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleDateString()}</p>
+            <div class="document-actions">
+                <button class="btn-secondary" onclick="viewDocument('${doc.id}')">View</button>
+                <button class="btn-secondary" onclick="downloadDocument('${doc.id}')">Download</button>
+                <button class="btn-secondary delete-btn" onclick="deleteDocument('${doc.id}')">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function viewDocument(docId) {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const doc = documents.find(d => d.id === docId);
+    
+    if (doc) {
+        if (doc.fileType.startsWith('image/')) {
+            const newWindow = window.open();
+            newWindow.document.write(`<img src="${doc.fileData}" style="max-width: 100%;" />`);
+        } else if (doc.fileType === 'application/pdf') {
+            const newWindow = window.open();
+            newWindow.document.write(`<iframe src="${doc.fileData}" width="100%" height="100%" style="border:none;"></iframe>`);
+        }
+    }
+}
+
+function downloadDocument(docId) {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const doc = documents.find(d => d.id === docId);
+    
+    if (doc) {
+        const link = document.createElement('a');
+        link.href = doc.fileData;
+        link.download = doc.fileName;
+        link.click();
+    }
+}
+
+function deleteDocument(docId) {
+    if (confirm('Are you sure you want to delete this document?')) {
+        const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+        const updatedDocuments = documents.filter(d => d.id !== docId);
+        localStorage.setItem('documents', JSON.stringify(updatedDocuments));
+        displayUserDocuments();
+        alert('Document deleted successfully!');
+    }
+}
 }
 
 let selectedBillType = '';
@@ -1068,5 +1207,148 @@ setInterval(checkVaccinationReminders, 60000);
 window.addEventListener('load', function() {
     if (currentUser) {
         checkVaccinationReminders();
+    }
+});
+
+function displayOfficialComplaints() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const deptComplaints = complaints.filter(c => c.department === currentOfficial.department || c.department === 'General');
+    const complaintsListEl = document.getElementById('official-complaints-list');
+    document.getElementById('official-dept-complaints').textContent = currentOfficial.department;
+    
+    if (deptComplaints.length === 0) {
+        complaintsListEl.innerHTML = '<p style="text-align: center; color: #666;">No complaints for your department</p>';
+        return;
+    }
+    
+    complaintsListEl.innerHTML = deptComplaints.map(complaint => `
+        <div class="complaint-item" onclick="viewComplaintDetail('${complaint.id}')">
+            <h4>Complaint ID: ${complaint.id}</h4>
+            <p><strong>Department:</strong> ${complaint.department}</p>
+            <p><strong>Description:</strong> ${complaint.description.substring(0, 100)}${complaint.description.length > 100 ? '...' : ''}</p>
+            <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+            <p><strong>User Phone:</strong> ${complaint.userId}</p>
+            <span class="complaint-status status-${complaint.status.toLowerCase().replace(/ /g, '.')}">${complaint.status}</span>
+        </div>
+    `).join('');
+}
+
+function viewComplaintDetail(complaintId) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaint = complaints.find(c => c.id === complaintId);
+    
+    if (!complaint) return;
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.phone === complaint.userId);
+    
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const userDocuments = documents.filter(d => d.userId === complaint.userId);
+    
+    let detailContent = `
+        <p><strong>Complaint ID:</strong> ${complaint.id}</p>
+        <p><strong>Department:</strong> ${complaint.department}</p>
+        <p><strong>Status:</strong> <span class="complaint-status status-${complaint.status.toLowerCase().replace(/ /g, '.')}">${complaint.status}</span></p>
+        <p><strong>Description:</strong> ${complaint.description}</p>
+        <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+        <p><strong>User:</strong> ${user ? user.email : complaint.userId}</p>
+    `;
+    
+    if (userDocuments.length > 0) {
+        detailContent += `<p><strong>User Documents:</strong></p><div class="user-documents-list">`;
+        userDocuments.forEach(doc => {
+            detailContent += `<button class="btn-secondary" onclick="viewOfficialDocument('${doc.id}')" style="margin: 5px;">${doc.name} (${doc.type})</button>`;
+        });
+        detailContent += `</div>`;
+    }
+    
+    document.getElementById('complaint-detail-content').innerHTML = detailContent;
+    
+    let actionsHtml = '';
+    if (currentOfficial.category === '1') {
+        if (complaint.status === 'Pending' || complaint.status === 'In Progress') {
+            actionsHtml = `
+                <button class="btn-primary" onclick="updateComplaintStatus('${complaint.id}', 'In Progress')">Mark In Progress</button>
+                <button class="btn-primary" onclick="updateComplaintStatus('${complaint.id}', 'Resolved')">Mark Resolved</button>
+            `;
+        }
+    } else if (currentOfficial.category === '2') {
+        if (complaint.status === 'Resolved') {
+            actionsHtml = `
+                <button class="btn-primary" onclick="verifyComplaint('${complaint.id}')">Verify Resolution</button>
+            `;
+        }
+    }
+    
+    document.getElementById('complaint-actions-section').innerHTML = actionsHtml;
+    document.getElementById('complaint-detail-modal').style.display = 'flex';
+}
+
+function closeComplaintDetailModal() {
+    document.getElementById('complaint-detail-modal').style.display = 'none';
+}
+
+function updateComplaintStatus(complaintId, newStatus) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintIndex = complaints.findIndex(c => c.id === complaintId);
+    
+    if (complaintIndex !== -1) {
+        complaints[complaintIndex].status = newStatus;
+        complaints[complaintIndex].updatedAt = new Date().toISOString();
+        complaints[complaintIndex].updatedBy = currentOfficial.email;
+        
+        localStorage.setItem('complaints', JSON.stringify(complaints));
+        
+        alert(`Complaint ${complaintId} marked as ${newStatus}`);
+        closeComplaintDetailModal();
+        displayOfficialComplaints();
+    }
+}
+
+function verifyComplaint(complaintId) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintIndex = complaints.findIndex(c => c.id === complaintId);
+    
+    if (complaintIndex !== -1) {
+        complaints[complaintIndex].status = 'Verified';
+        complaints[complaintIndex].verifiedAt = new Date().toISOString();
+        complaints[complaintIndex].verifiedBy = currentOfficial.email;
+        
+        localStorage.setItem('complaints', JSON.stringify(complaints));
+        
+        alert(`Complaint ${complaintId} has been verified`);
+        closeComplaintDetailModal();
+        displayOfficialComplaints();
+    }
+}
+
+function viewOfficialDocument(docId) {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const doc = documents.find(d => d.id === docId);
+    
+    if (doc) {
+        if (doc.fileType.startsWith('image/')) {
+            const newWindow = window.open();
+            newWindow.document.write(`<html><head><title>${doc.name}</title></head><body><img src="${doc.fileData}" style="max-width: 100%;" /></body></html>`);
+        } else if (doc.fileType === 'application/pdf') {
+            const newWindow = window.open();
+            newWindow.document.write(`<html><head><title>${doc.name}</title></head><body><iframe src="${doc.fileData}" width="100%" height="100%" style="border:none;"></iframe></body></html>`);
+        }
+    }
+}
+
+window.addEventListener('storage', function(e) {
+    if (e.key === 'complaints' && currentUser) {
+        if (document.getElementById('complaints-screen').classList.contains('active')) {
+            displayUserComplaints();
+        }
+    } else if (e.key === 'complaints' && currentOfficial) {
+        if (document.getElementById('official-dashboard-screen').classList.contains('active')) {
+            displayOfficialComplaints();
+        }
+    } else if (e.key === 'documents' && currentUser) {
+        if (document.getElementById('documents-screen').classList.contains('active')) {
+            displayUserDocuments();
+        }
     }
 });

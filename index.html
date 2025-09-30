@@ -498,8 +498,47 @@
                 <button class="back-btn" onclick="showUserDashboard()">← Back</button>
                 <h2>Documents</h2>
             </div>
-            <div class="module-placeholder">
-                <p>Documents module - Coming Soon</p>
+            <div class="documents-container">
+                <button class="btn-primary" onclick="showUploadDocumentForm()">+ Upload Document</button>
+                
+                <div id="upload-document-form-section" class="upload-document-form-section" style="display:none;">
+                    <h3>Upload Document</h3>
+                    <form id="upload-document-form">
+                        <div class="form-group">
+                            <label>Document Type *</label>
+                            <select id="document-type" required>
+                                <option value="">Select document type</option>
+                                <option value="Aadhaar Card">Aadhaar Card</option>
+                                <option value="Ration Card">Ration Card</option>
+                                <option value="Birth Certificate">Birth Certificate</option>
+                                <option value="Income Certificate">Income Certificate</option>
+                                <option value="Caste Certificate">Caste Certificate</option>
+                                <option value="Domicile Certificate">Domicile Certificate</option>
+                                <option value="Property Document">Property Document</option>
+                                <option value="Educational Certificate">Educational Certificate</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Document Name *</label>
+                            <input type="text" id="document-name" placeholder="Enter document name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload File *</label>
+                            <input type="file" id="document-file" accept="image/*,.pdf" required>
+                            <div id="document-preview" class="document-preview"></div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Upload Document</button>
+                            <button type="button" class="btn-secondary" onclick="cancelUploadDocument()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="documents-list" class="documents-list">
+                    <h3>Your Documents</h3>
+                    <div id="documents-items"></div>
+                </div>
             </div>
         </div>
 
@@ -517,6 +556,22 @@
                     <p><strong>Department:</strong> <span id="official-dept-display"></span></p>
                     <p><strong>Qualification:</strong> <span id="official-qual-display"></span></p>
                     <p><strong>Category:</strong> <span id="official-cat-display"></span></p>
+                </div>
+
+                <div class="complaints-management-section">
+                    <h3>Complaints - <span id="official-dept-complaints"></span></h3>
+                    <div id="official-complaints-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="complaint-detail-modal" class="modal">
+            <div class="modal-content complaint-detail-modal">
+                <h3>Complaint Details</h3>
+                <div id="complaint-detail-content"></div>
+                <div id="complaint-actions-section"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeComplaintDetailModal()">Close</button>
                 </div>
             </div>
         </div>
