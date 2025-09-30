@@ -223,7 +223,79 @@ function setVoicePreference(enabled) {
 
 function showUserDashboard() {
     document.getElementById('user-name-display').textContent = currentUser.email.split('@')[0];
+    displayDashboardSummary();
     showScreen('user-dashboard-screen');
+}
+
+function displayDashboardSummary() {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const userDocuments = documents.filter(d => d.userId === currentUser.phone);
+    
+    const documentsSummaryEl = document.getElementById('documents-summary');
+    if (userDocuments.length === 0) {
+        documentsSummaryEl.innerHTML = '<p style="color: #999;">No documents uploaded yet</p>';
+    } else {
+        const docCounts = {};
+        userDocuments.forEach(doc => {
+            docCounts[doc.type] = (docCounts[doc.type] || 0) + 1;
+        });
+        
+        documentsSummaryEl.innerHTML = Object.entries(docCounts).map(([type, count]) => `
+            <div class="summary-item">
+                <span>${sanitizeHTML(type)}</span>
+                <strong>${count} document${count > 1 ? 's' : ''}</strong>
+            </div>
+        `).join('') + `
+            <div class="summary-item" style="margin-top: 10px; border-top: 2px solid #667eea; padding-top: 10px;">
+                <strong>Total</strong>
+                <strong>${userDocuments.length} document${userDocuments.length > 1 ? 's' : ''}</strong>
+            </div>
+        `;
+    }
+    
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const userComplaints = complaints.filter(c => c.userId === currentUser.phone);
+    
+    const complaintsSummaryEl = document.getElementById('complaints-summary');
+    if (userComplaints.length === 0) {
+        complaintsSummaryEl.innerHTML = '<p style="color: #999;">No complaints filed yet</p>';
+    } else {
+        const statusCounts = {};
+        userComplaints.forEach(complaint => {
+            statusCounts[complaint.status] = (statusCounts[complaint.status] || 0) + 1;
+        });
+        
+        complaintsSummaryEl.innerHTML = Object.entries(statusCounts).map(([status, count]) => {
+            let badgeClass = 'badge-pending';
+            if (status.toLowerCase() === 'resolved') badgeClass = 'badge-resolved';
+            else if (status.toLowerCase() === 'in progress') badgeClass = 'badge-in-progress';
+            
+            return `
+                <div class="summary-item">
+                    <span>${sanitizeHTML(status)}</span>
+                    <span class="summary-badge ${badgeClass}">${count}</span>
+                </div>
+            `;
+        }).join('') + `
+            <div class="summary-item" style="margin-top: 10px; border-top: 2px solid #667eea; padding-top: 10px;">
+                <strong>Total Complaints</strong>
+                <strong>${userComplaints.length}</strong>
+            </div>
+        `;
+        
+        const recentComplaints = userComplaints.slice(-3).reverse();
+        if (recentComplaints.length > 0) {
+            complaintsSummaryEl.innerHTML += '<p style="margin-top: 15px; font-weight: 600; color: #667eea;">Recent Updates:</p>';
+            recentComplaints.forEach(complaint => {
+                complaintsSummaryEl.innerHTML += `
+                    <p style="font-size: 13px; margin: 5px 0;">
+                        <strong>${sanitizeHTML(complaint.id)}:</strong> ${sanitizeHTML(complaint.status)} 
+                        <span style="color: #999;">(${sanitizeHTML(complaint.department)})</span>
+                    </p>
+                `;
+            });
+        }
+    }
 }
 
 function showOfficialDashboard() {
@@ -236,6 +308,7 @@ function showOfficialDashboard() {
     
     showScreen('official-dashboard-screen');
     displayOfficialComplaints();
+    displayOfficialDocuments();
 }
 
 function logout() {
@@ -545,6 +618,7 @@ function showDocuments() {
     displayUserDocuments();
     showScreen('documents-screen');
 
+}
 function showUploadDocumentForm() {
     document.getElementById('upload-document-form-section').style.display = 'block';
     document.getElementById('document-type').value = '';
@@ -631,15 +705,15 @@ function displayUserDocuments() {
     documentsItems.innerHTML = userDocuments.map(doc => `
         <div class="document-item">
             <div class="document-item-header">
-                <h4>${doc.name}</h4>
-                <span class="document-type-badge">${doc.type}</span>
+                <h4>${sanitizeHTML(doc.name)}</h4>
+                <span class="document-type-badge">${sanitizeHTML(doc.type)}</span>
             </div>
-            <p><strong>File:</strong> ${doc.fileName}</p>
+            <p><strong>File:</strong> ${sanitizeHTML(doc.fileName)}</p>
             <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleDateString()}</p>
             <div class="document-actions">
-                <button class="btn-secondary" onclick="viewDocument('${doc.id}')">View</button>
-                <button class="btn-secondary" onclick="downloadDocument('${doc.id}')">Download</button>
-                <button class="btn-secondary delete-btn" onclick="deleteDocument('${doc.id}')">Delete</button>
+                <button class="btn-secondary" onclick=\"viewDocument('${sanitizeHTML(doc.id)}')\">View</button>
+                <button class="btn-secondary" onclick=\"downloadDocument('${sanitizeHTML(doc.id)}')\">Download</button>
+                <button class="btn-secondary delete-btn" onclick=\"deleteDocument('${sanitizeHTML(doc.id)}')\">Delete</button>
             </div>
         </div>
     `).join('');
@@ -672,7 +746,7 @@ function downloadDocument(docId) {
     }
 }
 
-function deleteDocument(docId) {
+function deleteDocument_OLD(docId) {
     if (confirm('Are you sure you want to delete this document?')) {
         const documents = JSON.parse(localStorage.getItem('documents') || '[]');
         const updatedDocuments = documents.filter(d => d.id !== docId);
@@ -681,9 +755,8 @@ function deleteDocument(docId) {
         alert('Document deleted successfully!');
     }
 }
-}
 
-let selectedBillType = '';
+let selectedBillType
 let currentBillPayment = null;
 let currentChildId = null;
 
@@ -1302,6 +1375,7 @@ function updateComplaintStatus(complaintId, newStatus) {
         alert(`Complaint ${complaintId} marked as ${newStatus}`);
         closeComplaintDetailModal();
         displayOfficialComplaints();
+    displayOfficialDocuments();
     }
 }
 
@@ -1319,6 +1393,7 @@ function verifyComplaint(complaintId) {
         alert(`Complaint ${complaintId} has been verified`);
         closeComplaintDetailModal();
         displayOfficialComplaints();
+    displayOfficialDocuments();
     }
 }
 
@@ -1345,6 +1420,7 @@ window.addEventListener('storage', function(e) {
     } else if (e.key === 'complaints' && currentOfficial) {
         if (document.getElementById('official-dashboard-screen').classList.contains('active')) {
             displayOfficialComplaints();
+    displayOfficialDocuments();
         }
     } else if (e.key === 'documents' && currentUser) {
         if (document.getElementById('documents-screen').classList.contains('active')) {
@@ -1352,3 +1428,91 @@ window.addEventListener('storage', function(e) {
         }
     }
 });
+
+function displayOfficialDocuments() {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const officialDocsList = document.getElementById('official-documents-list');
+    
+    if (documents.length === 0) {
+        officialDocsList.innerHTML = '<p style="text-align: center; color: #666;">No documents in system</p>';
+        return;
+    }
+    
+    officialDocsList.innerHTML = documents.map(doc => {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.phone === doc.userId);
+        const userName = user ? user.email.split('@')[0] : 'Unknown User';
+        
+        return `
+            <div class="document-item">
+                <div class="document-item-header">
+                    <h4>${sanitizeHTML(doc.name)}</h4>
+                    <span class="document-type-badge">${sanitizeHTML(doc.type)}</span>
+                </div>
+                <p><strong>User:</strong> ${sanitizeHTML(userName)} (${sanitizeHTML(doc.userId)})</p>
+                <p><strong>File:</strong> ${sanitizeHTML(doc.fileName)}</p>
+                <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleString()}</p>
+                <div class="document-actions">
+                    <button class="btn-secondary" onclick=\"viewDocument('${sanitizeHTML(doc.id)}')\">View</button>
+                    <button class="btn-secondary" onclick=\"downloadDocument('${sanitizeHTML(doc.id)}')\">Download</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function safeGetDocuments() {
+    try {
+        const data = localStorage.getItem('documents');
+        if (!data) return [];
+        const documents = JSON.parse(data);
+        return Array.isArray(documents) ? documents : [];
+    } catch (e) {
+        console.error('Error reading documents from localStorage:', e);
+        return [];
+    }
+}
+
+function safeGetComplaints() {
+    try {
+        const data = localStorage.getItem('complaints');
+        if (!data) return [];
+        const complaints = JSON.parse(data);
+        return Array.isArray(complaints) ? complaints : [];
+    } catch (e) {
+        console.error('Error reading complaints from localStorage:', e);
+        return [];
+    }
+}
+
+
+function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+function deleteDocument(docId) {
+    if (confirm('Are you sure you want to delete this document?')) {
+        try {
+            const documents = safeGetDocuments();
+            const updatedDocuments = documents.filter(d => d.id !== docId);
+            localStorage.setItem('documents', JSON.stringify(updatedDocuments));
+            
+            if (currentUser) {
+                displayUserDocuments();
+                if (typeof displayDashboardSummary === 'function') {
+                    displayDashboardSummary();
+                }
+            }
+            
+            if (currentOfficial && typeof displayOfficialDocuments === 'function') {
+                displayOfficialDocuments();
+            }
+            
+            alert('Document deleted successfully!');
+        } catch (e) {
+            console.error('Error deleting document:', e);
+            alert('Error deleting document. Please try again.');
+        }
+    }
+}

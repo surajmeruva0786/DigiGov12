@@ -190,6 +190,16 @@
                 <button class="back-btn" onclick="logout()">← Logout</button>
                 <h2>Welcome, <span id="user-name-display"></span>!</h2>
             </div>
+            <div class="dashboard-summary">
+                <div class="summary-card">
+                    <h4>📄 Documents Summary</h4>
+                    <div id="documents-summary"></div>
+                </div>
+                <div class="summary-card">
+                    <h4>📝 Complaints Status</h4>
+                    <div id="complaints-summary"></div>
+                </div>
+            </div>
             <div class="modules-container">
                 <div class="module-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showGovernmentSchemes()">
                     <div class="module-icon">📋</div>
@@ -561,6 +571,11 @@
                 <div class="complaints-management-section">
                     <h3>Complaints - <span id="official-dept-complaints"></span></h3>
                     <div id="official-complaints-list"></div>
+                </div>
+
+                <div class="documents-management-section">
+                    <h3>User Documents</h3>
+                    <div id="official-documents-list"></div>
                 </div>
             </div>
         </div>
