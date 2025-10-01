@@ -802,6 +802,47 @@
         </div>
     </div>
 
+    <div id="voice-controls" class="voice-controls">
+        <button id="voice-toggle" class="voice-toggle-btn" onclick="toggleVoice(!voiceSettings.enabled)">
+            🔇 Voice Off
+        </button>
+        <button class="voice-help-btn" onclick="showVoiceHelp()">
+            ❓ Voice Commands
+        </button>
+    </div>
+
+    <div id="listening-indicator" class="listening-indicator">
+        <div class="pulse-dot"></div>
+        <span>Listening...</span>
+    </div>
+
+    <div id="voice-command-display" class="voice-command-display">
+        Command recognized
+    </div>
+
+    <div id="voice-help-modal" class="modal">
+        <div class="modal-content">
+            <h3>🎤 Voice Commands</h3>
+            <p>Say any of these commands to navigate:</p>
+            <div class="voice-commands-list">
+                <div class="voice-command-item">📋 <strong>Schemes</strong> - Opens government schemes</div>
+                <div class="voice-command-item">📝 <strong>Complaints</strong> - Opens complaints section</div>
+                <div class="voice-command-item">👶 <strong>Children</strong> - Opens children management</div>
+                <div class="voice-command-item">💰 <strong>Bill Payments</strong> - Opens bill payments</div>
+                <div class="voice-command-item">📄 <strong>Documents</strong> - Opens documents section</div>
+                <div class="voice-command-item">🏠 <strong>Dashboard</strong> - Returns to dashboard</div>
+                <div class="voice-command-item">📊 <strong>Analytics</strong> - Opens analytics</div>
+                <div class="voice-command-item">🚪 <strong>Logout</strong> - Logs you out</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="closeVoiceHelp()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script src="fix_dashboard.js"></script>
+    <script src="voice.js"></script>
+    <script src="voice-integration.js"></script>
 </body>
 </html>
