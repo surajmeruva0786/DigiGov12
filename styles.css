@@ -2184,3 +2184,199 @@ h3 {
     background: #17a2b8;
     color: white;
 }
+
+.official-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.official-tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    color: #666;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+    border-radius: 5px 5px 0 0;
+}
+
+.official-tab-btn:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.official-tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.official-tab-content {
+    display: none;
+    padding: 20px 0;
+    animation: fadeIn 0.3s;
+}
+
+.official-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.user-detail-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-detail-card h4 {
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.user-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.user-info-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.user-info-item strong {
+    display: block;
+    color: #667eea;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.family-members-section {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.family-member-item {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.activity-log-item {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid #667eea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.activity-log-item .activity-icon {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.activity-log-item .activity-text {
+    flex: 1;
+    color: #555;
+}
+
+.activity-log-item .activity-time {
+    color: #999;
+    font-size: 12px;
+}
+
+.child-info-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #4facfe;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.child-info-card h4 {
+    color: #4facfe;
+    margin-bottom: 10px;
+}
+
+.payment-record-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #43e97b;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.payment-record-card h4 {
+    color: #43e97b;
+    margin-bottom: 10px;
+}
+
+.document-record-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #fa709a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.document-record-card h4 {
+    color: #fa709a;
+    margin-bottom: 10px;
+}
+
+.aadhaar-photo-preview {
+    max-width: 200px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.sector-filter {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.sector-filter select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .official-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+    
+    .user-info-grid {
+        grid-template-columns: 1fr;
+    }
+}

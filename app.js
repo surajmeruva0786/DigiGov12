@@ -117,6 +117,8 @@ document.getElementById('user-register-form').addEventListener('submit', functio
         users.push(newUser);
         localStorage.setItem('users', JSON.stringify(users));
         
+        logActivity('user_registered', { email: email, phone: phone, aadhaar: aadhaar });
+        
         alert('Registration successful! Please login.');
         showUserLogin();
         document.getElementById('user-register-form').reset();
@@ -159,7 +161,7 @@ document.getElementById('official-register-form').addEventListener('submit', fun
     const password = document.getElementById('official-password').value;
     const qualification = document.getElementById('official-qualification').value;
     const department = document.getElementById('official-department').value;
-    const category = document.getElementById('official-category').value;
+
     
     const officials = JSON.parse(localStorage.getItem('officials') || '[]');
     
@@ -174,7 +176,6 @@ document.getElementById('official-register-form').addEventListener('submit', fun
         password,
         qualification,
         department,
-        category,
         createdAt: new Date().toISOString()
     };
     
@@ -304,13 +305,9 @@ function showOfficialDashboard() {
     document.getElementById('official-dept-display').textContent = currentOfficial.department;
     document.getElementById('official-qual-display').textContent = currentOfficial.qualification;
     
-    const categoryText = currentOfficial.category === '1' ? 'Complaint Handler' : 'Verifier';
-    document.getElementById('official-cat-display').textContent = categoryText;
     
     showScreen('official-dashboard-screen');
-    displayOfficialComplaintsAll();
-    displayOfficialSchemeApplications();
-    displayOfficialDocuments();
+    showOfficialTab('users');
 }
 
 function logout() {
@@ -2879,3 +2876,523 @@ function viewComplaintDetailEnhanced(complaintId) {
     document.getElementById('complaint-actions-section').innerHTML = actionsHtml;
     document.getElementById('complaint-detail-modal').style.display = 'flex';
 }
+
+function logActivity(activityType, data) {
+    const activities = JSON.parse(localStorage.getItem('activityLogs') || '[]');
+    const activity = {
+        id: 'ACT' + Date.now(),
+        type: activityType,
+        data: data,
+        timestamp: new Date().toISOString()
+    };
+    activities.push(activity);
+    localStorage.setItem('activityLogs', JSON.stringify(activities));
+}
+
+function showOfficialTab(tab) {
+    document.querySelectorAll('.official-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.official-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    const activeBtn = Array.from(document.querySelectorAll('.official-tab-btn')).find(
+        btn => btn.textContent.toLowerCase().includes(tab)
+    );
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    const tabContent = document.getElementById('official-tab-' + tab);
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+    
+    switch(tab) {
+        case 'users':
+            displayAllUsers();
+            break;
+        case 'schemes':
+            displayOfficialSchemeApplicationsNew();
+            break;
+        case 'complaints':
+            displayOfficialComplaintsNew();
+            break;
+        case 'children':
+            displayAllChildrenData();
+            break;
+        case 'payments':
+            displayAllBillPayments();
+            break;
+        case 'documents':
+            displayAllDocuments();
+            break;
+        case 'activity':
+            displayAllActivityLogs();
+            break;
+    }
+}
+
+
+
+function applyForScheme(schemeId) {
+    if (!currentUser) {
+        alert('Please login first');
+        return;
+    }
+    
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const existingApp = applications.find(a => a.userId === currentUser.phone && a.schemeId === schemeId);
+    
+    if (existingApp) {
+        alert('You have already applied for this scheme');
+        return;
+    }
+    
+    const newApplication = {
+        id: 'APP' + Date.now(),
+        userId: currentUser.phone,
+        schemeId: schemeId,
+        status: 'Pending',
+        appliedAt: new Date().toISOString()
+    };
+    
+    applications.push(newApplication);
+    localStorage.setItem('schemeApplications', JSON.stringify(applications));
+    
+    logActivity('scheme_applied', {
+        applicationId: newApplication.id,
+        userId: currentUser.phone,
+        schemeId: schemeId
+    });
+    
+    alert('Application submitted successfully!');
+    displaySchemes();
+}
+
+function displayUserSchemeApplications() {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const userApplications = applications.filter(a => a.userId === currentUser.phone);
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    
+    const appElement = document.getElementById('user-scheme-applications');
+    if (!appElement) return;
+    
+    if (userApplications.length === 0) {
+        appElement.innerHTML = '<p style="color: #999;">No scheme applications yet</p>';
+        return;
+    }
+    
+    const statusCounts = {};
+    userApplications.forEach(app => {
+        statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
+    });
+    
+    appElement.innerHTML = Object.entries(statusCounts).map(([status, count]) => {
+        let badgeClass = 'badge-pending';
+        if (status.toLowerCase() === 'accepted') badgeClass = 'badge-resolved';
+        else if (status.toLowerCase() === 'rejected') badgeClass = 'badge-in-progress';
+        
+        return `
+            <div class="summary-item">
+                <span>${sanitizeHTML(status)}</span>
+                <span class="summary-badge ${badgeClass}">${count}</span>
+            </div>
+        `;
+    }).join('') + `
+        <div class="summary-item" style="margin-top: 10px; border-top: 2px solid #667eea; padding-top: 10px;">
+            <strong>Total Applications</strong>
+            <strong>${userApplications.length}</strong>
+        </div>
+    `;
+}
+function displayAllUsers() {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const usersList = document.getElementById('official-users-list');
+    
+    if (users.length === 0) {
+        usersList.innerHTML = '<p style="text-align: center; color: #999;">No users registered yet</p>';
+        return;
+    }
+    
+    usersList.innerHTML = users.map(user => `
+        <div class="user-detail-card">
+            <h4>User: ${sanitizeHTML(user.email)}</h4>
+            <div class="user-info-grid">
+                <div class="user-info-item">
+                    <strong>Aadhaar Number</strong>
+                    ${sanitizeHTML(user.aadhaar)}
+                </div>
+                <div class="user-info-item">
+                    <strong>Phone Number</strong>
+                    ${sanitizeHTML(user.phone)}
+                </div>
+                <div class="user-info-item">
+                    <strong>Email</strong>
+                    ${sanitizeHTML(user.email)}
+                </div>
+                <div class="user-info-item">
+                    <strong>State</strong>
+                    ${getStateFromAadhaar(user.aadhaar)}
+                </div>
+            </div>
+            <div class="user-info-item" style="grid-column: 1 / -1;">
+                <strong>Address</strong>
+                ${sanitizeHTML(user.address)}
+            </div>
+            ${user.aadhaarPhoto ? `
+                <div style="margin-top: 15px;">
+                    <strong>Aadhaar Photo:</strong><br>
+                    <img src="${user.aadhaarPhoto}" alt="Aadhaar" class="aadhaar-photo-preview">
+                </div>
+            ` : ''}
+            ${user.familyMembers && user.familyMembers.length > 0 ? `
+                <div class="family-members-section">
+                    <strong>Family Members:</strong>
+                    ${user.familyMembers.map(member => `
+                        <div class="family-member-item">
+                            <strong>${sanitizeHTML(member.name)}</strong> 
+                            (${sanitizeHTML(member.relation)}, Age: ${sanitizeHTML(member.age)})
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            <p style="margin-top: 15px; color: #999; font-size: 13px;">
+                Registered: ${new Date(user.createdAt).toLocaleString()}
+            </p>
+        </div>
+    `).join('');
+}
+
+function displayOfficialSchemeApplicationsNew() {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const schemesList = document.getElementById('official-schemes-list');
+    
+    if (applications.length === 0) {
+        schemesList.innerHTML = '<p style="text-align: center; color: #999;">No scheme applications yet</p>';
+        return;
+    }
+    
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    schemesList.innerHTML = applications.map(app => {
+        const scheme = schemes.find(s => s.id === app.schemeId);
+        const user = users.find(u => u.phone === app.userId);
+        
+        return `
+            <div class="application-item">
+                <h4>${scheme ? sanitizeHTML(scheme.name) : 'Unknown Scheme'}</h4>
+                <p><strong>Applicant:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'} (${sanitizeHTML(app.userId)})</p>
+                <p><strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span class="application-status status-${app.status.toLowerCase()}">${sanitizeHTML(app.status)}</span></p>
+                ${app.status === 'Pending' ? `
+                    <div class="application-actions">
+                        <button class="btn-accept" onclick="updateApplicationStatus('${app.id}', 'Accepted')">✓ Accept</button>
+                        <button class="btn-reject" onclick="updateApplicationStatus('${app.id}', 'Rejected')">✗ Reject</button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function updateApplicationStatus(applicationId, newStatus) {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const appIndex = applications.findIndex(a => a.id === applicationId);
+    
+    if (appIndex !== -1) {
+        applications[appIndex].status = newStatus;
+        applications[appIndex].updatedAt = new Date().toISOString();
+        localStorage.setItem('schemeApplications', JSON.stringify(applications));
+        
+        logActivity('application_' + newStatus.toLowerCase(), {
+            applicationId: applicationId,
+            userId: applications[appIndex].userId,
+            schemeId: applications[appIndex].schemeId,
+            officialName: currentOfficial.name
+        });
+        
+        alert(`Application ${newStatus.toLowerCase()} successfully!`);
+        displayOfficialSchemeApplicationsNew();
+    }
+}
+
+function displayOfficialComplaintsNew() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintsList = document.getElementById('official-complaints-list');
+    
+    if (complaints.length === 0) {
+        complaintsList.innerHTML = '<p style="text-align: center; color: #999;">No complaints filed yet</p>';
+        return;
+    }
+    
+    const departments = [...new Set(complaints.map(c => c.department))];
+    
+    let html = `
+        <div class="sector-filter">
+            <label><strong>Filter by Sector:</strong></label>
+            <select onchange="filterComplaintsBySector(this.value)" id="sector-filter">
+                <option value="all">All Sectors</option>
+                ${departments.map(dept => `<option value="${sanitizeHTML(dept)}">${sanitizeHTML(dept)}</option>`).join('')}
+            </select>
+        </div>
+        <div id="filtered-complaints-list"></div>
+    `;
+    
+    complaintsList.innerHTML = html;
+    filterComplaintsBySector('all');
+}
+
+function filterComplaintsBySector(sector) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const filteredComplaints = sector === 'all' ? complaints : complaints.filter(c => c.department === sector);
+    
+    const filteredList = document.getElementById('filtered-complaints-list');
+    
+    if (filteredComplaints.length === 0) {
+        filteredList.innerHTML = '<p style="text-align: center; color: #999;">No complaints in this sector</p>';
+        return;
+    }
+    
+    filteredList.innerHTML = filteredComplaints.map(complaint => {
+        const user = users.find(u => u.phone === complaint.userId);
+        
+        return `
+            <div class="complaint-item">
+                <h4>Complaint ID: ${sanitizeHTML(complaint.id)}</h4>
+                <p><strong>User:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'} (${sanitizeHTML(complaint.userId)})</p>
+                <p><strong>Department:</strong> ${sanitizeHTML(complaint.department)}</p>
+                <p><strong>Description:</strong> ${sanitizeHTML(complaint.description)}</p>
+                <p><strong>Filed On:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span class="complaint-status status-${complaint.status.toLowerCase().replace(' ', '-')}">${sanitizeHTML(complaint.status)}</span></p>
+                ${complaint.status === 'Pending' ? `
+                    <div class="application-actions">
+                        <button class="btn-accept" onclick="updateComplaintStatus('${complaint.id}', 'In Progress')">📋 Accept</button>
+                        <button class="btn-reject" onclick="updateComplaintStatus('${complaint.id}', 'Rejected')">✗ Reject</button>
+                    </div>
+                ` : ''}
+                ${complaint.status === 'In Progress' ? `
+                    <div class="application-actions">
+                        <button class="btn-accept" onclick="updateComplaintStatus('${complaint.id}', 'Resolved')">✓ Resolve</button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function updateComplaintStatus(complaintId, newStatus) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintIndex = complaints.findIndex(c => c.id === complaintId);
+    
+    if (complaintIndex !== -1) {
+        complaints[complaintIndex].status = newStatus;
+        complaints[complaintIndex].updatedAt = new Date().toISOString();
+        localStorage.setItem('complaints', JSON.stringify(complaints));
+        
+        logActivity('complaint_' + newStatus.toLowerCase().replace(' ', '_'), {
+            complaintId: complaintId,
+            userId: complaints[complaintIndex].userId,
+            department: complaints[complaintIndex].department,
+            officialName: currentOfficial.name
+        });
+        
+        alert(`Complaint ${newStatus.toLowerCase()} successfully!`);
+        const sectorFilter = document.getElementById('sector-filter');
+        if (sectorFilter) {
+            filterComplaintsBySector(sectorFilter.value);
+        }
+    }
+}
+
+function displayAllChildrenData() {
+    const children = JSON.parse(localStorage.getItem('children') || '[]');
+    const childrenList = document.getElementById('official-children-list');
+    
+    if (children.length === 0) {
+        childrenList.innerHTML = '<p style="text-align: center; color: #999;">No children data available</p>';
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    childrenList.innerHTML = children.map(child => {
+        const user = users.find(u => u.phone === child.userId);
+        const attendance = JSON.parse(localStorage.getItem('attendance') || '[]').filter(a => a.childId === child.id);
+        const vaccines = JSON.parse(localStorage.getItem('vaccinations') || '[]').filter(v => v.childId === child.id);
+        
+        return `
+            <div class="child-info-card">
+                <h4>${sanitizeHTML(child.name)} (Age: ${sanitizeHTML(child.age)})</h4>
+                <p><strong>Parent:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'}</p>
+                <p><strong>Date of Birth:</strong> ${sanitizeHTML(child.dob)}</p>
+                <p><strong>School:</strong> ${sanitizeHTML(child.school || 'Not specified')}</p>
+                
+                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <strong>📚 Academic Streak:</strong> ${attendance.length} days
+                </div>
+                
+                ${vaccines.length > 0 ? `
+                    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>💉 Vaccination Records:</strong>
+                        ${vaccines.map(v => `
+                            <div style="margin-top: 8px; padding: 8px; background: white; border-radius: 6px;">
+                                ${sanitizeHTML(v.name)} - ${new Date(v.date).toLocaleDateString()}
+                                ${v.reminder ? ' (Reminder set)' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p style="margin-top: 10px; color: #999;">No vaccination records</p>'}
+            </div>
+        `;
+    }).join('');
+}
+
+function displayAllBillPayments() {
+    const payments = JSON.parse(localStorage.getItem('billPayments') || '[]');
+    const paymentsList = document.getElementById('official-payments-list');
+    
+    if (payments.length === 0) {
+        paymentsList.innerHTML = '<p style="text-align: center; color: #999;">No bill payments recorded</p>';
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    paymentsList.innerHTML = payments.map(payment => {
+        const user = users.find(u => u.phone === payment.userId);
+        
+        return `
+            <div class="payment-record-card">
+                <h4>${sanitizeHTML(payment.serviceType)} Bill</h4>
+                <p><strong>User:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'}</p>
+                <p><strong>Consumer Number:</strong> ${sanitizeHTML(payment.consumerNumber)}</p>
+                <p><strong>Amount:</strong> ₹${sanitizeHTML(payment.amount)}</p>
+                <p><strong>Payment Method:</strong> ${sanitizeHTML(payment.paymentMethod)}</p>
+                <p><strong>Payment Date:</strong> ${new Date(payment.paidAt).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span class="payment-status">${sanitizeHTML(payment.status)}</span></p>
+            </div>
+        `;
+    }).join('');
+}
+
+function displayAllDocuments() {
+    const documents = JSON.parse(localStorage.getItem('documents') || '[]');
+    const documentsList = document.getElementById('official-documents-list');
+    
+    if (documents.length === 0) {
+        documentsList.innerHTML = '<p style="text-align: center; color: #999;">No documents uploaded yet</p>';
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    documentsList.innerHTML = documents.map(doc => {
+        const user = users.find(u => u.phone === doc.userId);
+        
+        return `
+            <div class="document-record-card">
+                <h4>${sanitizeHTML(doc.name)}</h4>
+                <p><strong>User:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'}</p>
+                <p><strong>Document Type:</strong> ${sanitizeHTML(doc.type)}</p>
+                <p><strong>Status:</strong> <span class="application-status status-${doc.status ? doc.status.toLowerCase() : 'pending'}">${sanitizeHTML(doc.status || 'Pending')}</span></p>
+                <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleString()}</p>
+                ${doc.fileData ? `
+                    <div style="margin-top: 10px;">
+                        <img src="${doc.fileData}" alt="${sanitizeHTML(doc.name)}" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function displayAllActivityLogs() {
+    const activities = JSON.parse(localStorage.getItem('activityLogs') || '[]');
+    const activityList = document.getElementById('official-activity-list');
+    
+    if (activities.length === 0) {
+        activityList.innerHTML = '<p style="text-align: center; color: #999;">No activity logs yet</p>';
+        return;
+    }
+    
+    const sortedActivities = activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    activityList.innerHTML = sortedActivities.map(activity => {
+        let icon = '📋';
+        let text = '';
+        
+        switch(activity.type) {
+            case 'user_registered':
+                icon = '👤';
+                text = `User ${activity.data.email} registered`;
+                break;
+            case 'official_registered':
+                icon = '🏛️';
+                text = `Official ${activity.data.officialName} registered`;
+                break;
+            case 'scheme_applied':
+                icon = '📝';
+                text = `User applied for scheme (ID: ${activity.data.schemeId})`;
+                break;
+            case 'application_accepted':
+                icon = '✅';
+                text = `Application ${activity.data.applicationId} accepted by ${activity.data.officialName}`;
+                break;
+            case 'application_rejected':
+                icon = '❌';
+                text = `Application ${activity.data.applicationId} rejected by ${activity.data.officialName}`;
+                break;
+            case 'complaint_filed':
+                icon = '📢';
+                text = `Complaint filed: ${activity.data.complaintId} (${activity.data.department})`;
+                break;
+            case 'complaint_in_progress':
+                icon = '🔄';
+                text = `Complaint ${activity.data.complaintId} accepted by ${activity.data.officialName}`;
+                break;
+            case 'complaint_resolved':
+                icon = '✓';
+                text = `Complaint ${activity.data.complaintId} resolved by ${activity.data.officialName}`;
+                break;
+            case 'complaint_rejected':
+                icon = '✗';
+                text = `Complaint ${activity.data.complaintId} rejected by ${activity.data.officialName}`;
+                break;
+            case 'bill_paid':
+                icon = '💰';
+                text = `Bill payment: ₹${activity.data.amount} for ${activity.data.serviceType}`;
+                break;
+            case 'document_uploaded':
+                icon = '📄';
+                text = `Document uploaded: ${activity.data.documentName}`;
+                break;
+            case 'child_added':
+                icon = '👶';
+                text = `Child added: ${activity.data.childName}`;
+                break;
+            default:
+                text = `Activity: ${activity.type}`;
+        }
+        
+        return `
+            <div class="activity-log-item">
+                <span class="activity-icon">${icon}</span>
+                <span class="activity-text">${sanitizeHTML(text)}</span>
+                <span class="activity-time">${new Date(activity.timestamp).toLocaleString()}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+const originalUserRegister = document.getElementById('user-register-form').onsubmit;
+document.getElementById('user-register-form').addEventListener('submit', function(e) {
+    logActivity('user_registered', { 
+        email: document.getElementById('user-email').value,
+        phone: document.getElementById('user-phone').value
+    });
+});
+

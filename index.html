@@ -157,14 +157,6 @@
                         <label>Department *</label>
                         <input type="text" id="official-department" placeholder="e.g., Revenue, Health" required>
                     </div>
-                    <div class="form-group">
-                        <label>Category *</label>
-                        <select id="official-category" required>
-                            <option value="">Select category</option>
-                            <option value="1">Complaint Handler</option>
-                            <option value="2">Verifier</option>
-                        </select>
-                    </div>
                     <button type="submit" class="btn-primary">Register</button>
                 </form>
             </div>
@@ -648,24 +640,51 @@
                     <h4>Your Information</h4>
                     <p><strong>Department:</strong> <span id="official-dept-display"></span></p>
                     <p><strong>Qualification:</strong> <span id="official-qual-display"></span></p>
-                    <p><strong>Category:</strong> <span id="official-cat-display"></span></p>
                 </div>
 
-                <button class="analytics-nav-btn" onclick="showOfficialAnalytics()">📊 View Analytics Dashboard</button>
+                <div class="official-tabs">
+                    <button class="official-tab-btn active" data-tab="users" onclick="showOfficialTab('users')">👥 User Sign-ups</button>
+                    <button class="official-tab-btn" data-tab="schemes" onclick="showOfficialTab('schemes')">📋 Scheme Applications</button>
+                    <button class="official-tab-btn" data-tab="complaints" onclick="showOfficialTab('complaints')">📝 Complaints</button>
+                    <button class="official-tab-btn" data-tab="children" onclick="showOfficialTab('children')">👶 Children Data</button>
+                    <button class="official-tab-btn" data-tab="payments" onclick="showOfficialTab('payments')">💰 Bill Payments</button>
+                    <button class="official-tab-btn" data-tab="documents" onclick="showOfficialTab('documents')">📄 Documents</button>
+                    <button class="official-tab-btn" data-tab="activity" onclick="showOfficialTab('activity')">📊 Activity Logs</button>
+                </div>
 
-                <div class="complaints-management-section">
+                <div id="official-tab-users" class="official-tab-content active">
+                    <h3>Registered Users</h3>
+                    <div id="official-users-list"></div>
+                </div>
+
+                <div id="official-tab-schemes" class="official-tab-content">
+                    <h3>Scheme Applications</h3>
+                    <div id="official-schemes-list"></div>
+                </div>
+
+                <div id="official-tab-complaints" class="official-tab-content">
                     <h3>All Complaints (Sector-wise)</h3>
                     <div id="official-complaints-list"></div>
                 </div>
 
-                <div class="applications-management-section">
-                    <h3>Scheme Applications</h3>
-                    <div id="official-scheme-applications-list"></div>
+                <div id="official-tab-children" class="official-tab-content">
+                    <h3>Children Data</h3>
+                    <div id="official-children-list"></div>
                 </div>
 
-                <div class="documents-management-section">
+                <div id="official-tab-payments" class="official-tab-content">
+                    <h3>Bill Payments</h3>
+                    <div id="official-payments-list"></div>
+                </div>
+
+                <div id="official-tab-documents" class="official-tab-content">
                     <h3>User Documents</h3>
                     <div id="official-documents-list"></div>
+                </div>
+
+                <div id="official-tab-activity" class="official-tab-content">
+                    <h3>Activity Logs</h3>
+                    <div id="official-activity-list"></div>
                 </div>
             </div>
         </div>
