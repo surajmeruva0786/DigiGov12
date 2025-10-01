@@ -225,6 +225,7 @@ function showUserDashboard() {
     document.getElementById('user-name-display').textContent = currentUser.email.split('@')[0];
     displayDashboardSummary();
     showScreen('user-dashboard-screen');
+    displayUserSchemeApplications();
 }
 
 function displayDashboardSummary() {
@@ -307,7 +308,8 @@ function showOfficialDashboard() {
     document.getElementById('official-cat-display').textContent = categoryText;
     
     showScreen('official-dashboard-screen');
-    displayOfficialComplaints();
+    displayOfficialComplaintsAll();
+    displayOfficialSchemeApplications();
     displayOfficialDocuments();
 }
 
@@ -393,16 +395,33 @@ function displaySchemes(filter = '') {
         schemesList.innerHTML = '<p style="text-align: center; color: #666;">No schemes found</p>';
         return;
     }
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const userApplications = applications.filter(a => a.userId === currentUser.phone);
     
-    schemesList.innerHTML = filteredSchemes.map(scheme => `
-        <div class="scheme-card">
-            <h4>${scheme.name}</h4>
-            <p><strong>Description:</strong> ${scheme.description}</p>
-            <p><strong>Benefits:</strong> ${scheme.benefits}</p>
-            <p><strong>Eligibility:</strong> ${scheme.eligibility}</p>
-            <span class="scheme-type">${scheme.type}</span>
-        </div>
-    `).join('');
+    schemesList.innerHTML = filteredSchemes.map(scheme => {
+        const existingApplication = userApplications.find(a => a.schemeId === scheme.id);
+        let applicationButton = '';
+        
+        if (existingApplication) {
+            const statusClass = existingApplication.status.toLowerCase();
+            applicationButton = `<span class="application-status status-${statusClass}">${existingApplication.status}</span>`;
+        } else {
+            applicationButton = `<button class="btn-apply" onclick="applyForScheme(${scheme.id})">Apply</button>`;
+        }
+        
+        return `
+            <div class="scheme-card">
+                <h4>${scheme.name}</h4>
+                <p><strong>Description:</strong> ${scheme.description}</p>
+                <p><strong>Benefits:</strong> ${scheme.benefits}</p>
+                <p><strong>Eligibility:</strong> ${scheme.eligibility}</p>
+                <div class="scheme-card-footer">
+                    <span class="scheme-type">${scheme.type}</span>
+                    ${applicationButton}
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 function searchSchemes() {
@@ -2661,4 +2680,202 @@ function generateColors(count) {
         colors[i] = baseColors[i % baseColors.length];
     }
     return colors;
+}
+
+function applyForScheme(schemeId) {
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    const scheme = schemes.find(s => s.id === schemeId);
+    
+    if (!scheme) {
+        alert('Scheme not found');
+        return;
+    }
+    
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    
+    const existingApplication = applications.find(a => 
+        a.userId === currentUser.phone && a.schemeId === schemeId
+    );
+    
+    if (existingApplication) {
+        alert('You have already applied for this scheme');
+        return;
+    }
+    
+    const newApplication = {
+        id: 'SA' + Date.now(),
+        userId: currentUser.phone,
+        userEmail: currentUser.email,
+        schemeId: schemeId,
+        schemeName: scheme.name,
+        status: 'Pending',
+        appliedAt: new Date().toISOString()
+    };
+    
+    applications.push(newApplication);
+    localStorage.setItem('schemeApplications', JSON.stringify(applications));
+    
+    alert(`Application submitted successfully for ${scheme.name}!\nApplication ID: ${newApplication.id}`);
+    displaySchemes(document.getElementById('scheme-search').value);
+    
+    if (typeof displayDashboardSummary === 'function') {
+        displayDashboardSummary();
+    }
+}
+
+function displayUserSchemeApplications() {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const userApplications = applications.filter(a => a.userId === currentUser.phone);
+    
+    const container = document.getElementById('user-scheme-applications');
+    if (!container) return;
+    
+    if (userApplications.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No scheme applications yet</p>';
+        return;
+    }
+    
+    container.innerHTML = userApplications.map(app => {
+        const statusClass = app.status.toLowerCase();
+        return `
+            <div class="application-item">
+                <h4>${app.schemeName}</h4>
+                <p><strong>Application ID:</strong> ${app.id}</p>
+                <p><strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleString()}</p>
+                <span class="application-status status-${statusClass}">${app.status}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function displayOfficialSchemeApplications() {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const container = document.getElementById('official-scheme-applications-list');
+    
+    if (!container) return;
+    
+    if (applications.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No scheme applications</p>';
+        return;
+    }
+    
+    container.innerHTML = applications.map(app => {
+        const statusClass = app.status.toLowerCase();
+        let actionButtons = '';
+        
+        if (app.status === 'Pending') {
+            actionButtons = `
+                <div class="application-actions">
+                    <button class="btn-accept" onclick="updateSchemeApplicationStatus('${app.id}', 'Accepted')">Accept</button>
+                    <button class="btn-reject" onclick="updateSchemeApplicationStatus('${app.id}', 'Rejected')">Reject</button>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="application-item">
+                <h4>${app.schemeName}</h4>
+                <p><strong>Application ID:</strong> ${app.id}</p>
+                <p><strong>User:</strong> ${app.userEmail} (${app.userId})</p>
+                <p><strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleString()}</p>
+                <span class="application-status status-${statusClass}">${app.status}</span>
+                ${actionButtons}
+            </div>
+        `;
+    }).join('');
+}
+
+function updateSchemeApplicationStatus(applicationId, newStatus) {
+    const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
+    const appIndex = applications.findIndex(a => a.id === applicationId);
+    
+    if (appIndex !== -1) {
+        applications[appIndex].status = newStatus;
+        applications[appIndex].updatedAt = new Date().toISOString();
+        applications[appIndex].updatedBy = currentOfficial.email;
+        
+        localStorage.setItem('schemeApplications', JSON.stringify(applications));
+        
+        alert(`Application ${applicationId} marked as ${newStatus}`);
+        displayOfficialSchemeApplications();
+    }
+}
+
+function updateComplaintStatusEnhanced(complaintId, newStatus) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintIndex = complaints.findIndex(c => c.id === complaintId);
+    
+    if (complaintIndex !== -1) {
+        complaints[complaintIndex].status = newStatus;
+        complaints[complaintIndex].updatedAt = new Date().toISOString();
+        complaints[complaintIndex].updatedBy = currentOfficial.email;
+        
+        localStorage.setItem('complaints', JSON.stringify(complaints));
+        
+        alert(`Complaint ${complaintId} marked as ${newStatus}`);
+        if (typeof closeComplaintDetailModal === 'function') {
+            closeComplaintDetailModal();
+        }
+        displayOfficialComplaintsAll();
+    }
+}
+
+function displayOfficialComplaintsAll() {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaintsListEl = document.getElementById('official-complaints-list');
+    
+    if (!complaintsListEl) return;
+    
+    if (complaints.length === 0) {
+        complaintsListEl.innerHTML = '<p style="text-align: center; color: #666;">No complaints in system</p>';
+        return;
+    }
+    
+    complaintsListEl.innerHTML = complaints.map(complaint => {
+        const statusClass = complaint.status.toLowerCase().replace(/ /g, '-');
+        return `
+            <div class="complaint-item" onclick="viewComplaintDetailEnhanced('${complaint.id}')">
+                <h4>Complaint ID: ${complaint.id}</h4>
+                <p><strong>Department:</strong> ${complaint.department}</p>
+                <p><strong>Description:</strong> ${complaint.description.substring(0, 100)}${complaint.description.length > 100 ? '...' : ''}</p>
+                <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+                <p><strong>User Phone:</strong> ${complaint.userId}</p>
+                <span class="complaint-status status-${statusClass}">${complaint.status}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewComplaintDetailEnhanced(complaintId) {
+    const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const complaint = complaints.find(c => c.id === complaintId);
+    
+    if (!complaint) return;
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.phone === complaint.userId);
+    
+    let detailContent = `
+        <p><strong>Complaint ID:</strong> ${complaint.id}</p>
+        <p><strong>Department:</strong> ${complaint.department}</p>
+        <p><strong>Status:</strong> <span class="complaint-status status-${complaint.status.toLowerCase().replace(/ /g, '-')}">${complaint.status}</span></p>
+        <p><strong>Description:</strong> ${complaint.description}</p>
+        <p><strong>Date:</strong> ${new Date(complaint.createdAt).toLocaleString()}</p>
+        <p><strong>User:</strong> ${user ? user.email : complaint.userId}</p>
+    `;
+    
+    document.getElementById('complaint-detail-content').innerHTML = detailContent;
+    
+    let actionsHtml = '';
+    if (complaint.status === 'Pending' || complaint.status === 'In Progress') {
+        actionsHtml = `
+            <button class="btn-primary" onclick="updateComplaintStatusEnhanced('${complaint.id}', 'Accepted')">Accept</button>
+            <button class="btn-primary" onclick="updateComplaintStatusEnhanced('${complaint.id}', 'In Progress')">Mark In Progress</button>
+            <button class="btn-reject" onclick="updateComplaintStatusEnhanced('${complaint.id}', 'Rejected')">Reject</button>
+            <button class="btn-primary" onclick="updateComplaintStatusEnhanced('${complaint.id}', 'Resolved')">Mark Resolved</button>
+        `;
+    }
+    
+    document.getElementById('complaint-actions-section').innerHTML = actionsHtml;
+    document.getElementById('complaint-detail-modal').style.display = 'flex';
 }

@@ -2050,3 +2050,137 @@ h3 {
     color: #999;
     font-size: 16px;
 }
+
+.scheme-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.btn-apply {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-apply:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.application-status {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.application-status.status-pending {
+    background: #ffc107;
+    color: #333;
+}
+
+.application-status.status-accepted {
+    background: #28a745;
+    color: white;
+}
+
+.application-status.status-rejected {
+    background: #dc3545;
+    color: white;
+}
+
+.application-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.application-item h4 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: clamp(15px, 2.5vw, 18px);
+}
+
+.application-item p {
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.application-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-accept {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-accept:hover {
+    background: #218838;
+}
+
+.btn-reject {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-reject:hover {
+    background: #c82333;
+}
+
+.applications-management-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.applications-management-section h3 {
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+.status-accepted {
+    background: #28a745;
+    color: white;
+}
+
+.status-rejected {
+    background: #dc3545;
+    color: white;
+}
+
+.status-in-progress {
+    background: #17a2b8;
+    color: white;
+}
