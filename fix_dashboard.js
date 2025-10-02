@@ -34,6 +34,9 @@ function showOfficialTab(tab) {
         case 'documents':
             displayAllDocuments();
             break;
+        case 'bills':
+            displayAllBillPayments();
+            break;
         case 'activity':
             displayAllActivityLogs();
             break;

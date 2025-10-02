@@ -3411,8 +3411,8 @@ function displayAllChildrenData() {
 }
 
 function displayAllBillPayments() {
-    const payments = JSON.parse(localStorage.getItem('billPayments') || '[]');
-    const paymentsList = document.getElementById('official-payments-list');
+    const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+    const paymentsList = document.getElementById('official-bills-list');
     
     if (payments.length === 0) {
         paymentsList.innerHTML = '<p style="text-align: center; color: #999;">No bill payments recorded</p>';
@@ -3426,12 +3426,12 @@ function displayAllBillPayments() {
         
         return `
             <div class="payment-record-card">
-                <h4>${sanitizeHTML(payment.serviceType)} Bill</h4>
+                <h4>${sanitizeHTML(payment.billType)} Bill</h4>
                 <p><strong>User:</strong> ${user ? sanitizeHTML(user.email) : 'Unknown'}</p>
                 <p><strong>Consumer Number:</strong> ${sanitizeHTML(payment.consumerNumber)}</p>
                 <p><strong>Amount:</strong> ₹${sanitizeHTML(payment.amount)}</p>
-                <p><strong>Payment Method:</strong> ${sanitizeHTML(payment.paymentMethod)}</p>
-                <p><strong>Payment Date:</strong> ${new Date(payment.paidAt).toLocaleString()}</p>
+                <p><strong>Payment Method:</strong> ${sanitizeHTML(payment.upiApp || 'UPI')}</p>
+                <p><strong>Payment Date:</strong> ${new Date(payment.timestamp).toLocaleString()}</p>
                 <p><strong>Status:</strong> <span class="payment-status">${sanitizeHTML(payment.status)}</span></p>
             </div>
         `;
