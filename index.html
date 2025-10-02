@@ -8,156 +8,168 @@
 </head>
 <body>
     <div id="app">
+        <div id="language-selector-fixed">
+            <select id="global-language-selector" onchange="changeLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="te">తెలుగు</option>
+                <option value="ta">தமிழ்</option>
+                <option value="kn">ಕನ್ನಡ</option>
+                <option value="ml">മലയാളം</option>
+                <option value="bn">বাংলা</option>
+                <option value="gu">ગુજરાતી</option>
+            </select>
+        </div>
         <div id="home-screen" class="screen active">
             <div class="header">
-                <h1>Government Service Portal</h1>
-                <p>Digital India Initiative</p>
+                <h1 data-i18n="home.title">Government Service Portal</h1>
+                <p data-i18n="home.subtitle">Digital India Initiative</p>
             </div>
             <div class="portal-blocks">
                 <div class="portal-block" onclick="showUserLogin()">
                     <div class="icon">👤</div>
-                    <h2>User</h2>
-                    <p>Access citizen services</p>
+                    <h2 data-i18n="home.userBlock">User</h2>
+                    <p data-i18n="home.userDesc">Access citizen services</p>
                 </div>
                 <div class="portal-block" onclick="showOfficialLogin()">
                     <div class="icon">🏛️</div>
-                    <h2>Government Official</h2>
-                    <p>Admin portal</p>
+                    <h2 data-i18n="home.officialBlock">Government Official</h2>
+                    <p data-i18n="home.officialDesc">Admin portal</p>
                 </div>
             </div>
         </div>
 
         <div id="user-login-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="showHome()">← Back</button>
-                <h2>User Login</h2>
+                <button class="back-btn" onclick="showHome()"><span data-i18n="common.back">Back</span> ←</button>
+                <h2 data-i18n="userLogin.title">User Login</h2>
             </div>
             <div class="form-container">
                 <form id="user-login-form">
                     <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="user-login-phone" placeholder="10-digit phone number" required>
+                        <label data-i18n="userLogin.phone">Phone Number</label>
+                        <input type="tel" id="user-login-phone" data-i18n="userLogin.phonePlaceholder" placeholder="10-digit phone number" required>
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="user-login-password" placeholder="Enter password" required>
+                        <label data-i18n="userLogin.password">Password</label>
+                        <input type="password" id="user-login-password" data-i18n="userLogin.passwordPlaceholder" placeholder="Enter password" required>
                     </div>
-                    <button type="submit" class="btn-primary">Login</button>
+                    <button type="submit" class="btn-primary" data-i18n="userLogin.loginButton">Login</button>
                 </form>
                 <div class="form-footer">
-                    <p>Don't have an account? <a href="#" onclick="showUserRegister(); return false;">Register</a></p>
+                    <p><span data-i18n="userLogin.noAccount">Don't have an account?</span> <a href="#" onclick="showUserRegister(); return false;" data-i18n="userLogin.registerLink">Register</a></p>
                 </div>
             </div>
         </div>
 
         <div id="user-register-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="showUserLogin()">← Back</button>
-                <h2>User Registration</h2>
+                <button class="back-btn" onclick="showUserLogin()"><span data-i18n="common.back">Back</span> ←</button>
+                <h2 data-i18n="userRegister.title">User Registration</h2>
             </div>
             <div class="form-container">
                 <form id="user-register-form">
                     <div class="form-group">
-                        <label>Aadhaar Number *</label>
-                        <input type="text" id="user-aadhaar" placeholder="12-digit Aadhaar number" required>
+                        <label data-i18n="userRegister.aadhaar">Aadhaar Number *</label>
+                        <input type="text" id="user-aadhaar" data-i18n-placeholder="userRegister.aadhaarPlaceholder" placeholder="12-digit Aadhaar number" required>
                     </div>
                     <div class="form-group">
-                        <label>Aadhaar Photo *</label>
+                        <label data-i18n="userRegister.aadhaarPhoto">Aadhaar Photo *</label>
                         <input type="file" id="user-aadhaar-photo" accept="image/*" required>
                         <div id="aadhaar-preview"></div>
                     </div>
                     <div class="form-group">
-                        <label>Phone Number *</label>
-                        <input type="tel" id="user-phone" placeholder="10-digit phone number" required>
+                        <label data-i18n="userRegister.phone">Phone Number *</label>
+                        <input type="tel" id="user-phone" data-i18n-placeholder="userRegister.phonePlaceholder" placeholder="10-digit phone number" required>
                     </div>
                     <div class="form-group">
-                        <label>Email *</label>
-                        <input type="email" id="user-email" placeholder="your.email@example.com" required>
+                        <label data-i18n="userRegister.email">Email *</label>
+                        <input type="email" id="user-email" data-i18n-placeholder="userRegister.emailPlaceholder" placeholder="your.email@example.com" required>
                     </div>
                     <div class="form-group">
-                        <label>Password *</label>
-                        <input type="password" id="user-password" placeholder="Create password" required>
+                        <label data-i18n="userRegister.password">Password *</label>
+                        <input type="password" id="user-password" data-i18n-placeholder="userRegister.passwordPlaceholder" placeholder="Create password" required>
                     </div>
                     <div class="form-group">
-                        <label>Address *</label>
-                        <textarea id="user-address" placeholder="Enter full address" rows="3" required></textarea>
+                        <label data-i18n="userRegister.address">Address *</label>
+                        <textarea id="user-address" data-i18n-placeholder="userRegister.addressPlaceholder" placeholder="Enter full address" rows="3" required></textarea>
                     </div>
                     
-                    <h3>Family Members</h3>
+                    <h3 data-i18n="userRegister.familyMembers">Family Members</h3>
                     <div id="family-members">
                         <div class="family-member">
                             <div class="form-group">
-                                <label>Name</label>
-                                <input type="text" class="family-name" placeholder="Family member name">
+                                <label data-i18n="userRegister.memberName">Name</label>
+                                <input type="text" class="family-name" data-i18n-placeholder="userRegister.memberNamePlaceholder" placeholder="Family member name">
                             </div>
                             <div class="form-group">
-                                <label>Relationship</label>
-                                <input type="text" class="family-relation" placeholder="e.g., Spouse, Child">
+                                <label data-i18n="userRegister.relationship">Relationship</label>
+                                <input type="text" class="family-relation" data-i18n-placeholder="userRegister.relationshipPlaceholder" placeholder="e.g., Spouse, Child">
                             </div>
                             <div class="form-group">
-                                <label>Age</label>
-                                <input type="number" class="family-age" placeholder="Age">
+                                <label data-i18n="userRegister.age">Age</label>
+                                <input type="number" class="family-age" data-i18n-placeholder="userRegister.agePlaceholder" placeholder="Age">
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn-secondary" onclick="addFamilyMember()">+ Add Family Member</button>
+                    <button type="button" class="btn-secondary" onclick="addFamilyMember()" data-i18n="userRegister.addMember">+ Add Family Member</button>
                     
-                    <button type="submit" class="btn-primary">Register</button>
+                    <button type="submit" class="btn-primary" data-i18n="userRegister.registerButton">Register</button>
                 </form>
             </div>
         </div>
 
         <div id="official-login-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="showHome()">← Back</button>
-                <h2>Official Login</h2>
+                <button class="back-btn" onclick="showHome()"><span data-i18n="common.back">Back</span> ←</button>
+                <h2 data-i18n="officialLogin.title">Official Login</h2>
             </div>
             <div class="form-container">
                 <form id="official-login-form">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="official-login-email" placeholder="Official email" required>
+                        <label data-i18n="officialLogin.email">Email</label>
+                        <input type="email" id="official-login-email" data-i18n-placeholder="officialLogin.emailPlaceholder" placeholder="Official email" required>
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="official-login-password" placeholder="Enter password" required>
+                        <label data-i18n="officialLogin.password">Password</label>
+                        <input type="password" id="official-login-password" data-i18n-placeholder="officialLogin.passwordPlaceholder" placeholder="Enter password" required>
                     </div>
-                    <button type="submit" class="btn-primary">Login</button>
+                    <button type="submit" class="btn-primary" data-i18n="officialLogin.loginButton">Login</button>
                 </form>
                 <div class="form-footer">
-                    <p>Don't have an account? <a href="#" onclick="showOfficialRegister(); return false;">Register</a></p>
+                    <p><span data-i18n="officialLogin.noAccount">Don't have an account?</span> <a href="#" onclick="showOfficialRegister(); return false;" data-i18n="officialLogin.registerLink">Register</a></p>
                 </div>
             </div>
         </div>
 
         <div id="official-register-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="showOfficialLogin()">← Back</button>
-                <h2>Official Registration</h2>
+                <button class="back-btn" onclick="showOfficialLogin()"><span data-i18n="common.back">Back</span> ←</button>
+                <h2 data-i18n="officialRegister.title">Official Registration</h2>
             </div>
             <div class="form-container">
                 <form id="official-register-form">
                     <div class="form-group">
-                        <label>Full Name *</label>
-                        <input type="text" id="official-name" placeholder="Enter full name" required>
+                        <label data-i18n="officialRegister.fullName">Full Name *</label>
+                        <input type="text" id="official-name" data-i18n-placeholder="officialRegister.fullNamePlaceholder" placeholder="Enter full name" required>
                     </div>
                     <div class="form-group">
-                        <label>Email *</label>
-                        <input type="email" id="official-email" placeholder="official.email@gov.in" required>
+                        <label data-i18n="officialRegister.email">Email *</label>
+                        <input type="email" id="official-email" data-i18n-placeholder="officialRegister.emailPlaceholder" placeholder="official.email@gov.in" required>
                     </div>
                     <div class="form-group">
-                        <label>Password *</label>
-                        <input type="password" id="official-password" placeholder="Create password" required>
+                        <label data-i18n="officialRegister.password">Password *</label>
+                        <input type="password" id="official-password" data-i18n-placeholder="officialRegister.passwordPlaceholder" placeholder="Create password" required>
                     </div>
                     <div class="form-group">
-                        <label>Qualification *</label>
-                        <input type="text" id="official-qualification" placeholder="e.g., B.Tech, MBA" required>
+                        <label data-i18n="officialRegister.qualification">Qualification *</label>
+                        <input type="text" id="official-qualification" data-i18n-placeholder="officialRegister.qualificationPlaceholder" placeholder="e.g., B.Tech, MBA" required>
                     </div>
                     <div class="form-group">
-                        <label>Department *</label>
-                        <input type="text" id="official-department" placeholder="e.g., Revenue, Health" required>
+                        <label data-i18n="officialRegister.department">Department *</label>
+                        <input type="text" id="official-department" data-i18n-placeholder="officialRegister.departmentPlaceholder" placeholder="e.g., Revenue, Health" required>
                     </div>
-                    <button type="submit" class="btn-primary">Register</button>
+                    <button type="submit" class="btn-primary" data-i18n="officialRegister.registerButton">Register</button>
                 </form>
             </div>
         </div>
@@ -840,6 +852,8 @@
         </div>
     </div>
 
+    <script src="translations.js"></script>
+    <script src="language.js"></script>
     <script src="app.js"></script>
     <script src="fix_dashboard.js"></script>
     <script src="voice.js"></script>

@@ -1,12 +1,21 @@
 let voiceSettings = {
     enabled: false,
     ttsEnabled: true,
-    sttEnabled: true
+    sttEnabled: true,
+    voiceLang: 'en-IN'
 };
 
 let voiceRecognition = null;
 let synthesis = window.speechSynthesis;
 let isListening = false;
+
+function getVoiceLang() {
+    const currentLang = localStorage.getItem('language') || 'en';
+    if (typeof translations !== 'undefined' && translations[currentLang] && translations[currentLang].voiceLang) {
+        return translations[currentLang].voiceLang;
+    }
+    return 'en-IN';
+}
 
 function initVoiceSystem() {
     const saved = localStorage.getItem('voiceSettings');
@@ -14,8 +23,12 @@ function initVoiceSystem() {
         try {
             voiceSettings = JSON.parse(saved);
         } catch (e) {
-            voiceSettings = { enabled: false, ttsEnabled: true, sttEnabled: true };
+            voiceSettings = { enabled: false, ttsEnabled: true, sttEnabled: true, voiceLang: 'en-IN' };
         }
+    }
+    
+    if (!voiceSettings.voiceLang) {
+        voiceSettings.voiceLang = getVoiceLang();
     }
     
     if (voiceSettings.enabled) {
@@ -36,7 +49,7 @@ function speak(text, callback) {
     synthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-IN';
+    utterance.lang = voiceSettings.voiceLang || getVoiceLang();
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     
@@ -49,13 +62,20 @@ function speak(text, callback) {
 
 function toggleVoice(enable) {
     voiceSettings.enabled = enable;
+    voiceSettings.voiceLang = getVoiceLang();
     saveVoiceSettings();
     
     if (enable) {
-        speak("Voice assistance enabled");
+        const enabledMsg = typeof getTranslation === 'function' ? 
+            getTranslation('voice.enabled') : 
+            "Voice assistance enabled";
+        speak(enabledMsg);
         startContinuousListening();
     } else {
-        speak("Voice assistance disabled");
+        const disabledMsg = typeof getTranslation === 'function' ? 
+            getTranslation('voice.disabled') : 
+            "Voice assistance disabled";
+        speak(disabledMsg);
         stopListening();
     }
     
@@ -91,7 +111,7 @@ function startContinuousListening() {
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     voiceRecognition = new SpeechRecognition();
-    voiceRecognition.lang = 'en-IN';
+    voiceRecognition.lang = voiceSettings.voiceLang || getVoiceLang();
     voiceRecognition.continuous = true;
     voiceRecognition.interimResults = false;
     
@@ -219,52 +239,82 @@ function closeVoiceHelp() {
 
 function announceLogin(userType) {
     if (userType === 'user') {
-        speak(`Login successful. Welcome to your dashboard.`);
+        const msg = typeof getTranslation === 'function' ? 
+            getTranslation('voice.loginSuccess') : 
+            'Login successful. Welcome to your dashboard.';
+        speak(msg);
     } else {
-        speak(`Official login successful. Welcome to the admin dashboard.`);
+        const msg = typeof getTranslation === 'function' ? 
+            getTranslation('voice.officialLoginSuccess') : 
+            'Official login successful. Welcome to the admin dashboard.';
+        speak(msg);
     }
 }
 
 function announceRegistration() {
-    speak("Registration successful! Please login to continue.");
+    const msg = typeof getTranslation === 'function' ? 
+        getTranslation('voice.registrationSuccess') : 
+        "Registration successful! Please login to continue.";
+    speak(msg);
 }
 
 function announceNavigation(destination) {
     const messages = {
-        'schemes': 'Opening government schemes section',
-        'complaints': 'Opening complaints section',
-        'children': 'Opening children management section',
-        'billPayments': 'Opening bill payments section',
-        'documents': 'Opening documents section',
-        'dashboard': 'Returning to dashboard',
-        'analytics': 'Opening analytics dashboard'
+        'schemes': typeof getTranslation === 'function' ? getTranslation('voice.openingSchemes') : 'Opening government schemes section',
+        'complaints': typeof getTranslation === 'function' ? getTranslation('voice.openingComplaints') : 'Opening complaints section',
+        'children': typeof getTranslation === 'function' ? getTranslation('voice.openingChildren') : 'Opening children management section',
+        'billPayments': typeof getTranslation === 'function' ? getTranslation('voice.openingBillPayments') : 'Opening bill payments section',
+        'documents': typeof getTranslation === 'function' ? getTranslation('voice.openingDocuments') : 'Opening documents section',
+        'dashboard': typeof getTranslation === 'function' ? getTranslation('voice.returningDashboard') : 'Returning to dashboard',
+        'analytics': typeof getTranslation === 'function' ? getTranslation('voice.openingAnalytics') : 'Opening analytics dashboard'
     };
     
-    speak(messages[destination] || `Navigating to ${destination}`);
+    speak(messages[destination] || (typeof getTranslation === 'function' ? getTranslation('voice.navigatingTo') : 'Navigating to') + ` ${destination}`);
 }
 
 function announceSchemeApplication(schemeName) {
-    speak(`Applying for ${schemeName} scheme`);
+    const msg = (typeof getTranslation === 'function' ? getTranslation('voice.applying') : 'Applying for') + ` ${schemeName} ` + 
+        (typeof getTranslation === 'function' ? getTranslation('voice.scheme') : 'scheme');
+    speak(msg);
 }
 
 function announceComplaintFiled(complaintId) {
-    speak(`Complaint filed successfully. Your complaint ID is ${complaintId}`);
+    const msg = (typeof getTranslation === 'function' ? getTranslation('voice.complaintFiled') : 'Complaint filed successfully. Your complaint ID is') + ` ${complaintId}`;
+    speak(msg);
 }
 
 function announceDocumentUpload(docType) {
-    speak(`${docType} uploaded successfully`);
+    const msg = `${docType} ` + (typeof getTranslation === 'function' ? getTranslation('voice.documentUploaded') : 'uploaded successfully');
+    speak(msg);
 }
 
 function announceBillPayment(billType, amount) {
-    speak(`Proceeding to pay ${billType} bill of rupees ${amount}`);
+    const msg = (typeof getTranslation === 'function' ? getTranslation('voice.proceedingPayment') : 'Proceeding to pay') + 
+        ` ${billType} ` + (typeof getTranslation === 'function' ? getTranslation('voice.bill') : 'bill') + ` ${amount}`;
+    speak(msg);
 }
 
 function announceChildAdded(childName) {
-    speak(`${childName} has been added to your children list`);
+    const msg = `${childName} ` + (typeof getTranslation === 'function' ? getTranslation('voice.childAdded') : 'has been added to your children list');
+    speak(msg);
 }
 
 function announceError(message) {
-    speak(`Error: ${message}`);
+    const msg = (typeof getTranslation === 'function' ? getTranslation('voice.error') : 'Error:') + ` ${message}`;
+    speak(msg);
+}
+
+function updateVoiceLanguage(langCode) {
+    const newVoiceLang = getVoiceLang();
+    voiceSettings.voiceLang = newVoiceLang;
+    saveVoiceSettings();
+    
+    if (voiceSettings.enabled && voiceRecognition) {
+        stopListening();
+        setTimeout(() => {
+            startContinuousListening();
+        }, 500);
+    }
 }
 
 initVoiceSystem();
