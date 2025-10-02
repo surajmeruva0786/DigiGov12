@@ -1090,7 +1090,7 @@ function startVoiceSchoolName() {
         });
     }
 
-document.getElementById('add-child-form').addEventListener('submit', function(e) {
+document.getElementById('add-child-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const children = JSON.parse(localStorage.getItem('children') || '[]');
@@ -1107,13 +1107,33 @@ document.getElementById('add-child-form').addEventListener('submit', function(e)
         createdAt: new Date().toISOString()
     };
     
-    children.push(child);
-    localStorage.setItem('children', JSON.stringify(children));
-    
-    speak(`${child.name} added successfully.`);
-    alert('Child added successfully!');
-    cancelAddChild();
-    displayChildrenList();
+    try {
+        // Save to local storage
+        children.push(child);
+        localStorage.setItem('children', JSON.stringify(children));
+        
+        // Save to Google Sheets
+        await google.script.run.withSuccessHandler(() => {
+            speak(`${child.name} added successfully.`);
+            alert('Child added successfully!');
+            cancelAddChild();
+            displayChildrenList();
+        }).withFailureHandler((error) => {
+            console.error('Error saving child data:', error);
+            alert('Child added locally but failed to sync with server. Please try again later.');
+        }).saveChildData({
+            timestamp: new Date().toISOString(),
+            childId: child.id,
+            userId: child.userId,
+            name: child.name,
+            age: child.age,
+            school: child.school,
+            class: child.class
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add child. Please try again.');
+    }
 });
 
 function displayChildrenList() {

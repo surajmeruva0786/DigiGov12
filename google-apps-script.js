@@ -1,6 +1,15 @@
 // GOOGLE APPS SCRIPT CODE - COMPREHENSIVE VERSION
 // Deploy this code in Google Apps Script as a Web App
-// 
+
+var SHEET_NAMES = {
+  USERS: 'UserRegistrations',
+  SCHEMES: 'SchemeApplications',
+  COMPLAINTS: 'Complaints',
+  BILLS: 'BillPayments',
+  CHILDREN: 'Children',
+  DOCUMENTS: 'Documents'
+};
+
 // SETUP INSTRUCTIONS:
 // 1. Go to https://script.google.com/
 // 2. Create a new project
@@ -10,7 +19,7 @@
 // 6. Set "Execute as" to "Me"
 // 7. Set "Who has access" to "Anyone"
 // 8. Click "Deploy" and copy the Web App URL
-// 9. Paste the URL in your frontend code where indicated
+// 9. Update the WEB_APP_URL in your frontend code
 
 function doPost(e) {
   try {
@@ -158,18 +167,22 @@ function saveSchemeApplication(data) {
       'Scheme ID',
       'Scheme Name',
       'Status',
+      'Documents',
+      'Additional Info',
       'Applied Date'
     ]);
   }
   
   sheet.appendRow([
-    new Date(),
-    data.id,
+    new Date().toISOString(),
+    data.applicationId || data.id,
     data.userId,
     data.schemeId,
     data.schemeName || '',
     data.status,
-    data.appliedAt
+    JSON.stringify(data.documents || []),
+    JSON.stringify(data.additionalInfo || {}),
+    data.appliedAt || new Date().toISOString()
   ]);
   
   return {
@@ -251,24 +264,24 @@ function saveBillPayment(data) {
 
 function saveChildData(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Children');
+  let sheet = ss.getSheetByName(SHEET_NAMES.CHILDREN);
   
   if (!sheet) {
-    sheet = ss.insertSheet('Children');
+    sheet = ss.insertSheet(SHEET_NAMES.CHILDREN);
     sheet.appendRow([
       'Timestamp',
       'Child ID',
       'User ID',
       'Name',
-      'Date of Birth',
+      'Age',
       'Gender',
-      'Birth Certificate',
       'School Name',
       'Grade',
-      'Attendance Streak',
+      'Birth Certificate',
       'Vaccinations',
       'Resources Used',
-      'Added Date'
+      'Attendance Streak',
+      'Created At'
     ]);
   }
   
@@ -276,19 +289,19 @@ function saveChildData(data) {
   const resources = data.resources ? JSON.stringify(data.resources) : 'None';
   
   sheet.appendRow([
-    new Date(),
-    data.id,
+    new Date().toISOString(),
+    data.childId || data.id,
     data.userId,
     data.name,
-    data.dob,
-    data.gender,
+    data.age,
+    data.gender || '',
+    data.school || data.schoolName || '',
+    data.class || data.grade || '',
     data.birthCertificate || '',
-    data.schoolName || '',
-    data.grade || '',
-    data.attendanceStreak || 0,
     vaccinations,
     resources,
-    data.addedAt
+    data.attendanceStreak || 0,
+    data.createdAt || data.addedAt || new Date().toISOString()
   ]);
   
   return {
@@ -521,12 +534,31 @@ function getDocuments() {
 }
 
 function getAllData() {
+  const usersData = getUsers();
+  const schemesData = getSchemes();
+  const complaintsData = getComplaints();
+  const billPaymentsData = getBillPayments();
+  const childrenData = getChildren();
+  const documentsData = getDocuments();
+  
   return {
     success: true,
-    message: 'Google Sheets API is working',
+    data: {
+      users: usersData.users || [],
+      schemes: schemesData.schemes || [],
+      complaints: complaintsData.complaints || [],
+      billPayments: billPaymentsData.payments || [],
+      children: childrenData.children || [],
+      documents: documentsData.documents || []
+    },
+    timestamp: new Date().toISOString(),
     availableEndpoints: [
-      'POST with dataType: user, scheme, complaint, billPayment, child, document',
-      'GET with dataType: users, schemes, complaints, billPayments, children, documents'
+      '/exec?dataType=users',
+      '/exec?dataType=schemes',
+      '/exec?dataType=complaints',
+      '/exec?dataType=billPayments',
+      '/exec?dataType=children',
+      '/exec?dataType=documents'
     ]
   };
 }
