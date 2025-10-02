@@ -31,6 +31,7 @@ async function syncUserToGoogleSheets(userData) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                dataType: 'user',
                 aadhaar: userData.aadhaar,
                 phone: userData.phone,
                 email: userData.email,
@@ -49,7 +50,43 @@ async function syncUserToGoogleSheets(userData) {
     }
 }
 
-async function getUsersFromGoogleSheets() {
+async function syncSchemeApplicationToGoogleSheets(applicationData) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+        const scheme = schemes.find(s => s.id == applicationData.schemeId);
+        
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'scheme',
+                id: applicationData.id,
+                userId: applicationData.userId,
+                schemeId: applicationData.schemeId,
+                schemeName: scheme ? scheme.name : 'Unknown',
+                status: applicationData.status,
+                appliedAt: applicationData.appliedAt
+            })
+        });
+        
+        console.log('Scheme application synced to Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to sync scheme application to Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function syncComplaintToGoogleSheets(complaintData) {
     if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
         console.log('Google Sheets sync is not enabled');
         return { success: false, reason: 'not_configured' };
@@ -57,6 +94,203 @@ async function getUsersFromGoogleSheets() {
     
     try {
         const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'complaint',
+                id: complaintData.id,
+                userId: complaintData.userId,
+                department: complaintData.department,
+                description: complaintData.description,
+                status: complaintData.status,
+                filedAt: complaintData.filedAt
+            })
+        });
+        
+        console.log('Complaint synced to Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to sync complaint to Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function syncBillPaymentToGoogleSheets(paymentData) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'billPayment',
+                id: paymentData.id,
+                userId: paymentData.userId,
+                billType: paymentData.billType,
+                service: paymentData.service,
+                consumerNumber: paymentData.consumerNumber,
+                amount: paymentData.amount,
+                paymentDate: paymentData.paymentDate
+            })
+        });
+        
+        console.log('Bill payment synced to Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to sync bill payment to Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function syncChildToGoogleSheets(childData) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'child',
+                id: childData.id,
+                userId: childData.userId,
+                name: childData.name,
+                dob: childData.dob,
+                gender: childData.gender,
+                birthCertificate: childData.birthCertificate,
+                schoolName: childData.schoolName,
+                grade: childData.grade,
+                attendanceStreak: childData.attendanceStreak || 0,
+                vaccinations: childData.vaccinations || [],
+                resources: childData.resources || [],
+                addedAt: childData.addedAt
+            })
+        });
+        
+        console.log('Child data synced to Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to sync child data to Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function syncDocumentToGoogleSheets(documentData) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'document',
+                id: documentData.id,
+                userId: documentData.userId,
+                type: documentData.type,
+                name: documentData.name,
+                status: documentData.status || 'Uploaded',
+                uploadedAt: documentData.uploadedAt
+            })
+        });
+        
+        console.log('Document synced to Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to sync document to Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function updateSchemeStatusInGoogleSheets(applicationId, newStatus) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'updateSchemeStatus',
+                applicationId: applicationId,
+                status: newStatus
+            })
+        });
+        
+        console.log('Scheme status updated in Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to update scheme status in Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function updateComplaintStatusInGoogleSheets(complaintId, newStatus) {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dataType: 'updateComplaintStatus',
+                complaintId: complaintId,
+                status: newStatus
+            })
+        });
+        
+        console.log('Complaint status updated in Google Sheets successfully');
+        return { success: true, timestamp: new Date().toISOString() };
+        
+    } catch (error) {
+        console.error('Failed to update complaint status in Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getUsersFromGoogleSheets() {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl + '?dataType=users', {
             method: 'GET'
         });
         
@@ -64,7 +298,47 @@ async function getUsersFromGoogleSheets() {
         return data;
         
     } catch (error) {
-        console.error('Failed to fetch from Google Sheets:', error);
+        console.error('Failed to fetch users from Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getSchemesFromGoogleSheets() {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl + '?dataType=schemes', {
+            method: 'GET'
+        });
+        
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Failed to fetch schemes from Google Sheets:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getComplaintsFromGoogleSheets() {
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.webAppUrl) {
+        console.log('Google Sheets sync is not enabled');
+        return { success: false, reason: 'not_configured' };
+    }
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl + '?dataType=complaints', {
+            method: 'GET'
+        });
+        
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Failed to fetch complaints from Google Sheets:', error);
         return { success: false, error: error.message };
     }
 }

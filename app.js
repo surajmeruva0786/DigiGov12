@@ -521,6 +521,18 @@ function submitQuickComplaint() {
     complaints.push(newComplaint);
     localStorage.setItem('complaints', JSON.stringify(complaints));
     
+    if (typeof syncComplaintToGoogleSheets === 'function') {
+        syncComplaintToGoogleSheets(newComplaint).then(result => {
+            if (result.success) {
+                console.log('Complaint synced to Google Sheets');
+            } else {
+                console.log('Google Sheets sync failed:', result.reason || result.error);
+            }
+        }).catch(err => {
+            console.log('Google Sheets sync error:', err);
+        });
+    }
+    
     alert('Complaint submitted successfully! ID: ' + complaintId);
     document.getElementById('quick-complaint-text').value = '';
 }
@@ -595,6 +607,7 @@ document.getElementById('complaint-form').addEventListener('submit', function(e)
     const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
     const complaintId = 'C' + Date.now();
     
+    
     const newComplaint = {
         id: complaintId,
         userId: currentUser.phone,
@@ -607,6 +620,18 @@ document.getElementById('complaint-form').addEventListener('submit', function(e)
     complaints.push(newComplaint);
     localStorage.setItem('complaints', JSON.stringify(complaints));
     
+    
+    if (typeof syncComplaintToGoogleSheets === 'function') {
+        syncComplaintToGoogleSheets(newComplaint).then(result => {
+            if (result.success) {
+                console.log('Complaint synced to Google Sheets');
+            } else {
+                console.log('Google Sheets sync failed:' , result.reason || result.error);
+            }
+        }).catch(err => {
+            console.log('Google Sheets sync error:' , err);
+        });
+    }
     alert('Complaint submitted successfully! ID: ' + complaintId);
     
     cancelComplaint();
@@ -711,6 +736,25 @@ document.getElementById('upload-document-form').addEventListener('submit', funct
         
         documents.push(newDocument);
         localStorage.setItem('documents', JSON.stringify(documents));
+        
+        if (typeof syncDocumentToGoogleSheets === 'function') {
+            syncDocumentToGoogleSheets({
+                id: newDocument.id,
+                userId: newDocument.userId,
+                type: newDocument.type,
+                name: newDocument.name,
+                status: 'Uploaded',
+                uploadedAt: newDocument.uploadedAt
+            }).then(result => {
+                if (result.success) {
+                    console.log('Document synced to Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:', result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
         
         alert('Document uploaded successfully!');
         cancelUploadDocument();
@@ -927,6 +971,26 @@ function processUPIPayment(upiApp) {
         payments.push(payment);
         localStorage.setItem('payments', JSON.stringify(payments));
         
+        if (typeof syncBillPaymentToGoogleSheets === 'function') {
+            syncBillPaymentToGoogleSheets({
+                id: payment.id,
+                userId: payment.userId,
+                billType: payment.billType,
+                service: payment.billType,
+                consumerNumber: payment.consumerNumber,
+                amount: payment.amount,
+                paymentDate: payment.timestamp
+            }).then(result => {
+                if (result.success) {
+                    console.log('Bill payment synced to Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:', result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
+        
         document.getElementById('upi-simulation-modal').style.display = 'none';
         alert(`Payment of ₹${currentBillPayment.amount} successful via ${upiApp}!`);
         
@@ -1000,6 +1064,31 @@ function startVoiceSchoolName() {
     };
     recognition.start();
 }
+    
+    if (typeof syncChildToGoogleSheets === 'function') {
+        syncChildToGoogleSheets({
+            id: child.id,
+            userId: child.userId,
+            name: child.name,
+            dob: child.age,
+            gender: '',
+            birthCertificate: '',
+            schoolName: child.school || '',
+            grade: child.class || '',
+            attendanceStreak: 0,
+            vaccinations: child.vaccinations || [],
+            resources: child.resources || [],
+            addedAt: child.createdAt
+        }).then(result => {
+            if (result.success) {
+                console.log('Child data synced to Google Sheets');
+            } else {
+                console.log('Google Sheets sync failed:', result.reason || result.error);
+            }
+        }).catch(err => {
+            console.log('Google Sheets sync error:', err);
+        });
+    }
 
 document.getElementById('add-child-form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -1375,6 +1464,18 @@ function viewComplaintDetail(complaintId) {
         }
     } else if (currentOfficial.category === '2') {
         if (complaint.status === 'Resolved') {
+        
+        if (typeof updateComplaintStatusInGoogleSheets === 'function') {
+            updateComplaintStatusInGoogleSheets(complaintId, newStatus).then(result => {
+                if (result.success) {
+                    console.log('Complaint status updated in Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:', result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
             actionsHtml = `
                 <button class="btn-primary" onclick="verifyComplaint('${complaint.id}')">Verify Resolution</button>
             `;
@@ -2784,6 +2885,18 @@ function displayOfficialSchemeApplications() {
         return `
             <div class="application-item">
                 <h4>${app.schemeName}</h4>
+        
+        if (typeof updateComplaintStatusInGoogleSheets === 'function') {
+            updateComplaintStatusInGoogleSheets(complaintId, newStatus).then(result => {
+                if (result.success) {
+                    console.log('Complaint status updated in Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:', result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
                 <p><strong>Application ID:</strong> ${app.id}</p>
                 <p><strong>User:</strong> ${app.userEmail} (${app.userId})</p>
                 <p><strong>Applied On:</strong> ${new Date(app.appliedAt).toLocaleString()}</p>
@@ -2979,6 +3092,18 @@ function applyForScheme(schemeId) {
         schemeId: schemeId
     });
     
+    if (typeof syncSchemeApplicationToGoogleSheets === 'function') {
+        syncSchemeApplicationToGoogleSheets(newApplication).then(result => {
+            if (result.success) {
+                console.log('Scheme application synced to Google Sheets');
+            } else {
+                console.log('Google Sheets sync failed:', result.reason || result.error);
+            }
+        }).catch(err => {
+            console.log('Google Sheets sync error:', err);
+        });
+    }
+    
     alert('Application submitted successfully!');
     displaySchemes();
 }
@@ -3113,6 +3238,18 @@ function displayOfficialSchemeApplicationsNew() {
 function updateApplicationStatus(applicationId, newStatus) {
     const applications = JSON.parse(localStorage.getItem('schemeApplications') || '[]');
     const appIndex = applications.findIndex(a => a.id === applicationId);
+        
+        if (typeof updateSchemeStatusInGoogleSheets === 'function') {
+            updateSchemeStatusInGoogleSheets(applicationId, newStatus).then(result => {
+                if (result.success) {
+                    console.log('Scheme status updated in Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:', result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
     
     if (appIndex !== -1) {
         applications[appIndex].status = newStatus;

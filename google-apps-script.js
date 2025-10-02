@@ -1,4 +1,4 @@
-// GOOGLE APPS SCRIPT CODE
+// GOOGLE APPS SCRIPT CODE - COMPREHENSIVE VERSION
 // Deploy this code in Google Apps Script as a Web App
 // 
 // SETUP INSTRUCTIONS:
@@ -15,43 +15,40 @@
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const sheetName = 'UserRegistrations';
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(sheetName);
+    const dataType = data.dataType;
     
-    if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
-      sheet.appendRow([
-        'Timestamp',
-        'Aadhaar Number',
-        'Phone Number',
-        'Email',
-        'Address',
-        'Family Members',
-        'Registration Date'
-      ]);
+    let result;
+    switch(dataType) {
+      case 'user':
+        result = saveUserRegistration(data);
+        break;
+      case 'scheme':
+        result = saveSchemeApplication(data);
+        break;
+      case 'complaint':
+        result = saveComplaint(data);
+        break;
+      case 'billPayment':
+        result = saveBillPayment(data);
+        break;
+      case 'child':
+        result = saveChildData(data);
+        break;
+      case 'document':
+        result = saveDocument(data);
+        break;
+      case 'updateSchemeStatus':
+        result = updateSchemeStatus(data);
+        break;
+      case 'updateComplaintStatus':
+        result = updateComplaintStatus(data);
+        break;
+      default:
+        result = { success: false, error: 'Unknown data type: ' + dataType };
     }
     
-    const familyMembersStr = data.familyMembers ? 
-      data.familyMembers.map(fm => `${fm.name} (${fm.relation}, ${fm.age})`).join('; ') : 
-      'None';
-    
-    sheet.appendRow([
-      new Date(),
-      data.aadhaar,
-      data.phone,
-      data.email,
-      data.address,
-      familyMembersStr,
-      data.createdAt
-    ]);
-    
     return ContentService
-      .createTextOutput(JSON.stringify({
-        success: true,
-        message: 'User data saved to Google Sheets',
-        timestamp: new Date().toISOString()
-      }))
+      .createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
@@ -65,17 +62,332 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  const sheetName = 'UserRegistrations';
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(sheetName);
-  
-  if (!sheet) {
+  try {
+    const dataType = e.parameter.dataType;
+    
+    if (!dataType) {
+      return getAllData();
+    }
+    
+    let result;
+    switch(dataType) {
+      case 'users':
+        result = getUsers();
+        break;
+      case 'schemes':
+        result = getSchemes();
+        break;
+      case 'complaints':
+        result = getComplaints();
+        break;
+      case 'billPayments':
+        result = getBillPayments();
+        break;
+      case 'children':
+        result = getChildren();
+        break;
+      case 'documents':
+        result = getDocuments();
+        break;
+      default:
+        result = { success: false, error: 'Unknown data type' };
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
-        message: 'No data found'
+        error: error.toString()
       }))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function saveUserRegistration(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('UserRegistrations');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('UserRegistrations');
+    sheet.appendRow([
+      'Timestamp',
+      'Aadhaar Number',
+      'Phone Number',
+      'Email',
+      'Address',
+      'Family Members',
+      'Registration Date'
+    ]);
+  }
+  
+  const familyMembersStr = data.familyMembers ? 
+    data.familyMembers.map(fm => `${fm.name} (${fm.relation}, ${fm.age})`).join('; ') : 
+    'None';
+  
+  sheet.appendRow([
+    new Date(),
+    data.aadhaar,
+    data.phone,
+    data.email,
+    data.address,
+    familyMembersStr,
+    data.createdAt
+  ]);
+  
+  return {
+    success: true,
+    message: 'User registration saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function saveSchemeApplication(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('SchemeApplications');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('SchemeApplications');
+    sheet.appendRow([
+      'Timestamp',
+      'Application ID',
+      'User ID',
+      'Scheme ID',
+      'Scheme Name',
+      'Status',
+      'Applied Date'
+    ]);
+  }
+  
+  sheet.appendRow([
+    new Date(),
+    data.id,
+    data.userId,
+    data.schemeId,
+    data.schemeName || '',
+    data.status,
+    data.appliedAt
+  ]);
+  
+  return {
+    success: true,
+    message: 'Scheme application saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function saveComplaint(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Complaints');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('Complaints');
+    sheet.appendRow([
+      'Timestamp',
+      'Complaint ID',
+      'User ID',
+      'Department',
+      'Description',
+      'Status',
+      'Filed Date'
+    ]);
+  }
+  
+  sheet.appendRow([
+    new Date(),
+    data.id,
+    data.userId,
+    data.department,
+    data.description,
+    data.status,
+    data.filedAt
+  ]);
+  
+  return {
+    success: true,
+    message: 'Complaint saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function saveBillPayment(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('BillPayments');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('BillPayments');
+    sheet.appendRow([
+      'Timestamp',
+      'Payment ID',
+      'User ID',
+      'Bill Type',
+      'Service',
+      'Consumer Number',
+      'Amount',
+      'Payment Date'
+    ]);
+  }
+  
+  sheet.appendRow([
+    new Date(),
+    data.id,
+    data.userId,
+    data.billType,
+    data.service || data.billType,
+    data.consumerNumber,
+    data.amount,
+    data.paymentDate
+  ]);
+  
+  return {
+    success: true,
+    message: 'Bill payment saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function saveChildData(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Children');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('Children');
+    sheet.appendRow([
+      'Timestamp',
+      'Child ID',
+      'User ID',
+      'Name',
+      'Date of Birth',
+      'Gender',
+      'Birth Certificate',
+      'School Name',
+      'Grade',
+      'Attendance Streak',
+      'Vaccinations',
+      'Resources Used',
+      'Added Date'
+    ]);
+  }
+  
+  const vaccinations = data.vaccinations ? JSON.stringify(data.vaccinations) : 'None';
+  const resources = data.resources ? JSON.stringify(data.resources) : 'None';
+  
+  sheet.appendRow([
+    new Date(),
+    data.id,
+    data.userId,
+    data.name,
+    data.dob,
+    data.gender,
+    data.birthCertificate || '',
+    data.schoolName || '',
+    data.grade || '',
+    data.attendanceStreak || 0,
+    vaccinations,
+    resources,
+    data.addedAt
+  ]);
+  
+  return {
+    success: true,
+    message: 'Child data saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function saveDocument(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Documents');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('Documents');
+    sheet.appendRow([
+      'Timestamp',
+      'Document ID',
+      'User ID',
+      'Document Type',
+      'Document Name',
+      'Status',
+      'Upload Date'
+    ]);
+  }
+  
+  sheet.appendRow([
+    new Date(),
+    data.id,
+    data.userId,
+    data.type,
+    data.name,
+    data.status || 'Uploaded',
+    data.uploadedAt
+  ]);
+  
+  return {
+    success: true,
+    message: 'Document saved to Google Sheets',
+    timestamp: new Date().toISOString()
+  };
+}
+
+function updateSchemeStatus(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('SchemeApplications');
+  
+  if (!sheet) {
+    return { success: false, error: 'SchemeApplications sheet not found' };
+  }
+  
+  const dataRange = sheet.getDataRange();
+  const values = dataRange.getValues();
+  
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] === data.applicationId) {
+      sheet.getRange(i + 1, 6).setValue(data.status);
+      return {
+        success: true,
+        message: 'Scheme status updated in Google Sheets',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+  
+  return { success: false, error: 'Application not found' };
+}
+
+function updateComplaintStatus(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Complaints');
+  
+  if (!sheet) {
+    return { success: false, error: 'Complaints sheet not found' };
+  }
+  
+  const dataRange = sheet.getDataRange();
+  const values = dataRange.getValues();
+  
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] === data.complaintId) {
+      sheet.getRange(i + 1, 6).setValue(data.status);
+      return {
+        success: true,
+        message: 'Complaint status updated in Google Sheets',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+  
+  return { success: false, error: 'Complaint not found' };
+}
+
+function getUsers() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('UserRegistrations');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
   }
   
   const data = sheet.getDataRange().getValues();
@@ -90,11 +402,131 @@ function doGet(e) {
     return user;
   });
   
-  return ContentService
-    .createTextOutput(JSON.stringify({
-      success: true,
-      users: users,
-      count: users.length
-    }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return { success: true, users: users, count: users.length };
+}
+
+function getSchemes() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('SchemeApplications');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const schemes = rows.map(row => {
+    const scheme = {};
+    headers.forEach((header, index) => {
+      scheme[header] = row[index];
+    });
+    return scheme;
+  });
+  
+  return { success: true, schemes: schemes, count: schemes.length };
+}
+
+function getComplaints() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Complaints');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const complaints = rows.map(row => {
+    const complaint = {};
+    headers.forEach((header, index) => {
+      complaint[header] = row[index];
+    });
+    return complaint;
+  });
+  
+  return { success: true, complaints: complaints, count: complaints.length };
+}
+
+function getBillPayments() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('BillPayments');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const payments = rows.map(row => {
+    const payment = {};
+    headers.forEach((header, index) => {
+      payment[header] = row[index];
+    });
+    return payment;
+  });
+  
+  return { success: true, payments: payments, count: payments.length };
+}
+
+function getChildren() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Children');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const children = rows.map(row => {
+    const child = {};
+    headers.forEach((header, index) => {
+      child[header] = row[index];
+    });
+    return child;
+  });
+  
+  return { success: true, children: children, count: children.length };
+}
+
+function getDocuments() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Documents');
+  
+  if (!sheet) {
+    return { success: false, message: 'No data found' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const documents = rows.map(row => {
+    const doc = {};
+    headers.forEach((header, index) => {
+      doc[header] = row[index];
+    });
+    return doc;
+  });
+  
+  return { success: true, documents: documents, count: documents.length };
+}
+
+function getAllData() {
+  return {
+    success: true,
+    message: 'Google Sheets API is working',
+    availableEndpoints: [
+      'POST with dataType: user, scheme, complaint, billPayment, child, document',
+      'GET with dataType: users, schemes, complaints, billPayments, children, documents'
+    ]
+  };
 }
