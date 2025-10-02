@@ -7,7 +7,7 @@ function changeLanguage(langCode) {
     }
     
     const lang = translations[langCode];
-    if (lang && lang.voiceLang) {
+    if (lang && lang.voiceLang && typeof updateVoiceLanguage === 'function') {
         updateVoiceLanguage(langCode);
     }
     

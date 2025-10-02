@@ -176,23 +176,23 @@
 
         <div id="voice-setup-screen" class="screen">
             <div class="header">
-                <h2>Voice Assistance Setup</h2>
+                <h2 data-i18n="voiceSetup.title">Voice Assistance Setup</h2>
             </div>
             <div class="form-container voice-setup">
                 <div class="icon-large">🎤</div>
-                <h3>Enable Voice Assistance?</h3>
-                <p>Voice assistance helps you navigate the portal using voice commands</p>
+                <h3 data-i18n="voiceSetup.heading">Enable Voice Assistance?</h3>
+                <p data-i18n="voiceSetup.description">Voice assistance helps you navigate the portal using voice commands</p>
                 <div class="voice-buttons">
-                    <button class="btn-primary" onclick="setVoicePreference(true)">Yes, Enable</button>
-                    <button class="btn-secondary" onclick="setVoicePreference(false)">No, Thanks</button>
+                    <button class="btn-primary" onclick="setVoicePreference(true)" data-i18n="voiceSetup.enableButton">Yes, Enable</button>
+                    <button class="btn-secondary" onclick="setVoicePreference(false)" data-i18n="voiceSetup.disableButton">No, Thanks</button>
                 </div>
             </div>
         </div>
 
         <div id="user-dashboard-screen" class="screen">
             <div class="header">
-                <button class="back-btn logout-btn" onclick="logout()">Logout →</button>
-                <h2>Welcome, <span id="user-name-display"></span>!</h2>
+                <button class="back-btn logout-btn" onclick="logout()" data-i18n="common.logout">Logout →</button>
+                <h2><span data-i18n="dashboard.welcome">Welcome</span>, <span id="user-name-display"></span>!</h2>
                 <button class="notification-bell" onclick="toggleNotificationCenter()">
                     🔔
                     <span id="notification-badge" class="notification-badge">0</span>
@@ -200,55 +200,55 @@
             </div>
             <div class="dashboard-summary">
                 <div class="summary-card">
-                    <h4>📄 Documents Summary</h4>
+                    <h4 data-i18n="dashboard.documentsSummary">📄 Documents Summary</h4>
                     <div id="documents-summary"></div>
                 </div>
                 <div class="summary-card">
-                    <h4>📝 Complaints Status</h4>
+                    <h4 data-i18n="dashboard.complaintsSummary">📝 Complaints Status</h4>
                     <div id="complaints-summary"></div>
                 </div>
                 <div class="summary-card">
-                    <h4>📋 Scheme Applications</h4>
+                    <h4 data-i18n="dashboard.schemeSummary">📋 Scheme Applications</h4>
                     <div id="user-scheme-applications"></div>
                 </div>
             </div>
             
             <div class="global-search-section">
-                <h3>🔍 Global Search</h3>
+                <h3 data-i18n="dashboard.globalSearch">🔍 Global Search</h3>
                 <div class="global-search-box">
-                    <input type="text" id="global-search-input" placeholder="Search across all services..." oninput="performGlobalSearch()">
+                    <input type="text" id="global-search-input" data-i18n-placeholder="dashboard.searchPlaceholder" placeholder="Search across all services..." oninput="performGlobalSearch()">
                     <button class="voice-btn" id="global-voice-btn" onclick="startGlobalVoiceSearch()">🎤</button>
                 </div>
                 <div id="global-search-status" class="search-status"></div>
             </div>
 
-            <button class="analytics-nav-btn" onclick="showUserAnalytics()">📊 View My Analytics</button>
+            <button class="analytics-nav-btn" onclick="showUserAnalytics()" data-i18n="dashboard.viewAnalytics">📊 View My Analytics</button>
             
             <div class="modules-container">
                 <div class="module-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showGovernmentSchemes()">
                     <div class="module-icon">📋</div>
-                    <h3>Government Schemes</h3>
-                    <p>Browse available schemes</p>
+                    <h3 data-i18n="dashboard.governmentSchemes">Government Schemes</h3>
+                    <p data-i18n="dashboard.governmentSchemesDesc">Browse available schemes</p>
                 </div>
                 <div class="module-block" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="showComplaints()">
                     <div class="module-icon">📝</div>
-                    <h3>Complaints</h3>
-                    <p>File a complaint</p>
+                    <h3 data-i18n="dashboard.complaints">Complaints</h3>
+                    <p data-i18n="dashboard.complaintsDesc">File a complaint</p>
                 </div>
                 <div class="module-block" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="showChildren()">
                     <div class="module-icon">👶</div>
-                    <h3>Children</h3>
-                    <p>Manage child records</p>
+                    <h3 data-i18n="dashboard.children">Children</h3>
+                    <p data-i18n="dashboard.childrenDesc">Manage child records</p>
                 </div>
                 <div class="module-block" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="showBillPayments()">
                     <div class="module-icon">💰</div>
-                    <h3>Bill Payments</h3>
-                    <p>Pay your bills</p>
+                    <h3 data-i18n="dashboard.billPayments">Bill Payments</h3>
+                    <p data-i18n="dashboard.billPaymentsDesc">Pay your bills</p>
                 </div>
                 <div class="module-block" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="showDocuments()">
                     <div class="module-icon">📄</div>
-                    <h3>Documents</h3>
-                    <p>Manage documents</p>
+                    <h3 data-i18n="dashboard.documents">Documents</h3>
+                    <p data-i18n="dashboard.documentsDesc">Manage documents</p>
                 </div>
             </div>
         </div>
@@ -314,14 +314,14 @@
 
         <div id="government-schemes-screen" class="screen">
             <div class="header">
-                <button class="back-btn" onclick="showUserDashboard()">← Back</button>
-                <h2>Government Schemes</h2>
+                <button class="back-btn" onclick="showUserDashboard()"><span data-i18n="common.back">← Back</span></button>
+                <h2 data-i18n="schemes.title">Government Schemes</h2>
                 <p id="user-state-display"></p>
             </div>
             <div class="schemes-container">
                 <div class="search-section">
                     <div class="search-box">
-                        <input type="text" id="scheme-search" placeholder="Search schemes..." oninput="searchSchemes()">
+                        <input type="text" id="scheme-search" data-i18n-placeholder="schemes.searchPlaceholder" placeholder="Search schemes..." oninput="searchSchemes()">
                         <button class="voice-btn" onclick="startVoiceSearch()">🎤</button>
                     </div>
                 </div>
@@ -329,12 +329,12 @@
                 <div id="schemes-list"></div>
 
                 <div class="quick-complaint-section">
-                    <h3>Quick Complaint</h3>
+                    <h3 data-i18n="schemes.quickComplaint">Quick Complaint</h3>
                     <div class="complaint-box">
-                        <textarea id="quick-complaint-text" placeholder="Type your complaint here..." rows="3"></textarea>
+                        <textarea id="quick-complaint-text" data-i18n-placeholder="schemes.complaintPlaceholder" placeholder="Type your complaint here..." rows="3"></textarea>
                         <div class="complaint-actions">
-                            <button class="voice-btn" onclick="startVoiceComplaint()">🎤 Voice Input</button>
-                            <button class="btn-primary" onclick="submitQuickComplaint()">Submit Complaint</button>
+                            <button class="voice-btn" onclick="startVoiceComplaint()" data-i18n="schemes.voiceInput">🎤 Voice Input</button>
+                            <button class="btn-primary" onclick="submitQuickComplaint()" data-i18n="schemes.submitComplaint">Submit Complaint</button>
                         </div>
                     </div>
                 </div>
