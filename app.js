@@ -119,6 +119,18 @@ document.getElementById('user-register-form').addEventListener('submit', functio
         
         logActivity('user_registered', { email: email, phone: phone, aadhaar: aadhaar });
         
+        if (typeof syncUserToGoogleSheets === 'function') {
+            syncUserToGoogleSheets(newUser).then(result => {
+                if (result.success) {
+                    console.log('User data synced to Google Sheets');
+                } else {
+                    console.log('Google Sheets sync failed:' , result.reason || result.error);
+                }
+            }).catch(err => {
+                console.log('Google Sheets sync error:', err);
+            });
+        }
+        
         alert('Registration successful! Please login.');
         showUserLogin();
         document.getElementById('user-register-form').reset();
