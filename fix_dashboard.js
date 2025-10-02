@@ -31,9 +31,6 @@ function showOfficialTab(tab) {
         case 'children':
             displayAllChildrenData();
             break;
-        case 'payments':
-            displayAllBillPayments();
-            break;
         case 'documents':
             displayAllDocuments();
             break;
@@ -72,10 +69,14 @@ function applyForScheme(schemeId) {
         return;
     }
     
+    const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
+    const scheme = schemes.find(s => s.id == schemeId);
+    
     const newApplication = {
         id: 'APP' + Date.now(),
         userId: currentUser.phone,
         schemeId: schemeId,
+        schemeName: scheme ? scheme.name : 'Unknown',
         status: 'Pending',
         appliedAt: new Date().toISOString()
     };
@@ -88,6 +89,18 @@ function applyForScheme(schemeId) {
         userId: currentUser.phone,
         schemeId: schemeId
     });
+    
+    if (typeof syncSchemeApplicationToGoogleSheets === 'function') {
+        syncSchemeApplicationToGoogleSheets(newApplication).then(result => {
+            if (result.success) {
+                console.log('Scheme application synced to Google Sheets');
+            } else {
+                console.log('Google Sheets sync failed:', result.reason || result.error);
+            }
+        }).catch(err => {
+            console.log('Google Sheets sync error:', err);
+        });
+    }
     
     alert('Application submitted successfully!');
     displaySchemes();
