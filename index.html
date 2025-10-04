@@ -685,6 +685,7 @@
                     <button class="official-tab-btn" data-tab="bills" onclick="showOfficialTab('bills')">💰 Bill Payments</button>
                     <button class="official-tab-btn" data-tab="activity" onclick="showOfficialTab('activity')">📊 Activity Logs</button>
                     <button class="official-tab-btn" data-tab="health" onclick="showOfficialTab('health')">🏥 Health Services</button>
+                    <button class="official-tab-btn" data-tab="employment" onclick="showOfficialTab('employment')">💼 Employment</button>
                 </div>
 
                 <div id="official-tab-users" class="official-tab-content active">
@@ -726,7 +727,38 @@
                     <h3>Health Services Data</h3>
                     <div id="official-health-data"></div>
                 </div>
-            </div>
+
+                <div id="official-tab-employment" class="official-tab-content">
+                    <h3>Employment Dashboard</h3>
+                    <div class="employment-filters">
+                        <div class="filter-row">
+                            <div class="filter-item">
+                                <label>Filter by Job Type:</label>
+                                <select id="official-job-type-filter" onchange="filterOfficialApplications()">
+                                    <option value="all">All Types</option>
+                                    <option value="Job">Job</option>
+                                    <option value="Training">Training</option>
+                                    <option value="MGNREGA">MGNREGA</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Filter by Qualification:</label>
+                                <input type="text" id="official-qualification-filter" placeholder="e.g., B.Tech, 10th" oninput="filterOfficialApplications()">
+                            </div>
+                            <div class="filter-item">
+                                <label>Filter by Status:</label>
+                                <select id="official-status-filter" onchange="filterOfficialApplications()">
+                                    <option value="all">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="official-employment-list"></div>
+                </div>
+                </div>
         </div>
 
         <div id="complaint-detail-modal" class="modal">
@@ -1179,8 +1211,8 @@
 
 
 <section id="employment-services-screen" class="screen">
-        <div class="employment-header">
-            <button class="back-to-portal" onclick="showUserDashboard()">← Back to Portal</button>
+        <div class="header">
+            <button class="back-btn" onclick="showUserDashboard()">← Back</button>
             <h1>💼 Employment & Skill Development</h1>
             <p>Jobs, Training Programs & MGNREGA Opportunities</p>
         </div>
@@ -1319,6 +1351,7 @@
     <script src="voice-integration.js"></script>
     <script src="digital-id-card.js"></script>
     <script src="employment-jobs.js"></script>
+    <script src="official-employment.js"></script>
     <script src="health-services.js"></script>
 </body>
 </html>

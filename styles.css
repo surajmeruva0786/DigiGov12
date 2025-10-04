@@ -4097,3 +4097,286 @@ h3 {
         padding: 20px;
     }
 }
+
+/* Official Employment Dashboard Styles */
+.official-employment-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.official-employment-card .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.official-employment-card .job-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.official-employment-card .job-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.official-employment-card .job-meta p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.applications-section {
+    margin-top: 20px;
+}
+
+.applications-section h5 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.application-card {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.application-header strong {
+    font-size: 16px;
+    color: #333;
+}
+
+.application-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.application-details {
+    margin: 15px 0;
+}
+
+.application-details p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.application-details a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.application-details a:hover {
+    text-decoration: underline;
+}
+
+.application-actions {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.btn-approve {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-approve:hover {
+    background: #218838;
+}
+
+.btn-reject {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-reject:hover {
+    background: #c82333;
+}
+
+.notes-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.notes-section h6 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.notes-list {
+    margin-bottom: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.note-item {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 3px solid #667eea;
+}
+
+.note-item p {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.note-item small {
+    font-size: 12px;
+    color: #999;
+}
+
+.add-note-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.note-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.btn-add-note {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btn-add-note:hover {
+    background: #5568d3;
+}
+
+.employment-filters {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.employment-filters .filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.employment-filters .filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.employment-filters .filter-item label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.employment-filters .filter-item select,
+.employment-filters .filter-item input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .official-employment-card .job-header {
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+    }
+    
+    .application-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .application-actions {
+        flex-direction: column;
+    }
+    
+    .btn-approve, .btn-reject {
+        width: 100%;
+    }
+    
+    .add-note-section {
+        flex-direction: column;
+    }
+    
+    .btn-add-note {
+        width: 100%;
+    }
+    
+    .employment-filters .filter-row {
+        grid-template-columns: 1fr;
+    }
+}
