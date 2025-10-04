@@ -250,11 +250,13 @@ function loadHealthRecords() {
         if (userBloodRequests.length > 0) {
             html += '<h4 class="records-subtitle">🩸 Blood Requests</h4>';
             userBloodRequests.forEach(request => {
+                const statusClass = request.status === 'Accepted' ? 'status-badge status-accepted' : 
+                                    request.status === 'Rejected' ? 'status-badge status-rejected' : 'status-badge status-pending';
                 html += `
                     <div class="health-record-card">
                         <div class="record-header">
                             <strong>Request ID: ${sanitizeHTML(request.id)}</strong>
-                            <span class="status-badge status-pending">${sanitizeHTML(request.status)}</span>
+                            <span class="${statusClass}">${sanitizeHTML(request.status)}</span>
                         </div>
                         <div class="record-details">
                             <p><strong>Patient:</strong> ${sanitizeHTML(request.patientName)}</p>
@@ -272,11 +274,13 @@ function loadHealthRecords() {
         if (userOrganRequests.length > 0) {
             html += '<h4 class="records-subtitle">🫀 Organ Requests</h4>';
             userOrganRequests.forEach(request => {
+                const statusClass = request.status === 'Accepted' ? 'status-badge status-accepted' : 
+                                    request.status === 'Rejected' ? 'status-badge status-rejected' : 'status-badge status-pending';
                 html += `
                     <div class="health-record-card">
                         <div class="record-header">
                             <strong>Request ID: ${sanitizeHTML(request.id)}</strong>
-                            <span class="status-badge status-pending">${sanitizeHTML(request.status)}</span>
+                            <span class="${statusClass}">${sanitizeHTML(request.status)}</span>
                         </div>
                         <div class="record-details">
                             <p><strong>Patient:</strong> ${sanitizeHTML(request.patientName)}</p>
@@ -310,6 +314,9 @@ function displayAllHealthData() {
     const container = document.getElementById('official-tab-health');
     if (!container) return;
     
+    const pendingBloodRequests = bloodRequests.filter(r => r.status === 'Pending').length;
+    const pendingOrganRequests = organRequests.filter(r => r.status === 'Pending').length;
+    
     let html = '<div class="official-health-data">';
     
     html += `
@@ -324,25 +331,36 @@ function displayAllHealthData() {
             </div>
             <div class="stat-card">
                 <h4>🩸 Blood Requests</h4>
-                <p class="stat-number">${bloodRequests.length}</p>
+                <p class="stat-number">${pendingBloodRequests} / ${bloodRequests.length}</p>
+                <p class="stat-label">Pending / Total</p>
             </div>
             <div class="stat-card">
                 <h4>🫀 Organ Requests</h4>
-                <p class="stat-number">${organRequests.length}</p>
+                <p class="stat-number">${pendingOrganRequests} / ${organRequests.length}</p>
+                <p class="stat-label">Pending / Total</p>
             </div>
         </div>
     `;
     
-    html += '<h3>Blood Donors</h3>';
+    html += '<h3>🩸 Blood Donors</h3>';
     if (bloodDonors.length > 0) {
-        html += '<div class="data-table">';
+        html += '<div class="health-donors-grid">';
         bloodDonors.forEach(donor => {
             html += `
-                <div class="table-row">
-                    <div class="row-data">
-                        <strong>${sanitizeHTML(donor.id)}</strong> - ${sanitizeHTML(donor.name)} 
-                        (${sanitizeHTML(donor.bloodGroup)}) - ${sanitizeHTML(donor.location)}
-                        <span class="row-date">${new Date(donor.registeredAt).toLocaleDateString()}</span>
+                <div class="health-donor-card">
+                    <div class="donor-header">
+                        <strong>ID: ${sanitizeHTML(donor.id)}</strong>
+                        <span class="blood-group-badge">${sanitizeHTML(donor.bloodGroup)}</span>
+                    </div>
+                    <div class="donor-details">
+                        <p><strong>Name:</strong> ${sanitizeHTML(donor.name)}</p>
+                        <p><strong>Age:</strong> ${sanitizeHTML(donor.age)} years</p>
+                        <p><strong>Contact:</strong> ${sanitizeHTML(donor.contact)}</p>
+                        <p><strong>Location:</strong> ${sanitizeHTML(donor.location)}</p>
+                        <p><strong>Availability:</strong> ${sanitizeHTML(donor.availability)}</p>
+                        <p><strong>Medical History:</strong> ${sanitizeHTML(donor.medicalHistory || 'None')}</p>
+                        <p><strong>Registered:</strong> ${new Date(donor.registeredAt).toLocaleDateString()}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-active">${sanitizeHTML(donor.status)}</span></p>
                     </div>
                 </div>
             `;
@@ -352,16 +370,25 @@ function displayAllHealthData() {
         html += '<p class="no-data">No blood donors registered</p>';
     }
     
-    html += '<h3>Organ Donors</h3>';
+    html += '<h3>🫀 Organ Donors</h3>';
     if (organDonors.length > 0) {
-        html += '<div class="data-table">';
+        html += '<div class="health-donors-grid">';
         organDonors.forEach(donor => {
             html += `
-                <div class="table-row">
-                    <div class="row-data">
-                        <strong>${sanitizeHTML(donor.id)}</strong> - ${sanitizeHTML(donor.name)} 
-                        (${sanitizeHTML(donor.organType)}) - ${sanitizeHTML(donor.location)}
-                        <span class="row-date">${new Date(donor.registeredAt).toLocaleDateString()}</span>
+                <div class="health-donor-card">
+                    <div class="donor-header">
+                        <strong>ID: ${sanitizeHTML(donor.id)}</strong>
+                        <span class="organ-type-badge">${sanitizeHTML(donor.organType)}</span>
+                    </div>
+                    <div class="donor-details">
+                        <p><strong>Name:</strong> ${sanitizeHTML(donor.name)}</p>
+                        <p><strong>Age:</strong> ${sanitizeHTML(donor.age)} years</p>
+                        <p><strong>Contact:</strong> ${sanitizeHTML(donor.contact)}</p>
+                        <p><strong>Location:</strong> ${sanitizeHTML(donor.location)}</p>
+                        <p><strong>Medical Details:</strong> ${sanitizeHTML(donor.medicalDetails || 'None')}</p>
+                        <p><strong>Consent:</strong> ${donor.consent ? 'Yes' : 'No'}</p>
+                        <p><strong>Registered:</strong> ${new Date(donor.registeredAt).toLocaleDateString()}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-active">${sanitizeHTML(donor.status)}</span></p>
                     </div>
                 </div>
             `;
@@ -371,17 +398,39 @@ function displayAllHealthData() {
         html += '<p class="no-data">No organ donors registered</p>';
     }
     
-    html += '<h3>Blood Requests</h3>';
+    html += '<h3>🩸 Blood Requests</h3>';
     if (bloodRequests.length > 0) {
-        html += '<div class="data-table">';
+        html += '<div class="health-requests-grid">';
         bloodRequests.forEach(request => {
+            const statusClass = request.status === 'Accepted' ? 'status-accepted' : 
+                                request.status === 'Rejected' ? 'status-rejected' : 'status-pending';
+            const urgencyClass = request.urgency === 'Critical' ? 'urgency-critical' : 
+                                 request.urgency === 'High' ? 'urgency-high' : 'urgency-normal';
+            
             html += `
-                <div class="table-row">
-                    <div class="row-data">
-                        <strong>${sanitizeHTML(request.id)}</strong> - Patient: ${sanitizeHTML(request.patientName)} 
-                        (${sanitizeHTML(request.bloodGroup)}, ${sanitizeHTML(request.urgency)}) - ${sanitizeHTML(request.hospital)}
-                        <span class="row-date">${new Date(request.requestedAt).toLocaleDateString()}</span>
+                <div class="health-request-card">
+                    <div class="request-header">
+                        <strong>Request ID: ${sanitizeHTML(request.id)}</strong>
+                        <span class="status-badge ${statusClass}">${sanitizeHTML(request.status)}</span>
                     </div>
+                    <div class="request-details">
+                        <p><strong>Patient Name:</strong> ${sanitizeHTML(request.patientName)}</p>
+                        <p><strong>Blood Group:</strong> <span class="blood-group-badge">${sanitizeHTML(request.bloodGroup)}</span></p>
+                        <p><strong>Units Required:</strong> ${sanitizeHTML(request.unitsRequired)}</p>
+                        <p><strong>Urgency:</strong> <span class="urgency-badge ${urgencyClass}">${sanitizeHTML(request.urgency)}</span></p>
+                        <p><strong>Hospital:</strong> ${sanitizeHTML(request.hospital)}</p>
+                        <p><strong>Address:</strong> ${sanitizeHTML(request.hospitalAddress)}</p>
+                        <p><strong>Contact:</strong> ${sanitizeHTML(request.contact)}</p>
+                        <p><strong>Additional Info:</strong> ${sanitizeHTML(request.additionalInfo || 'None')}</p>
+                        <p><strong>Requested:</strong> ${new Date(request.requestedAt).toLocaleDateString()}</p>
+                        <p><strong>Requested By:</strong> User ID ${sanitizeHTML(request.userId)}</p>
+                    </div>
+                    ${request.status === 'Pending' ? `
+                        <div class="request-actions">
+                            <button class="btn-accept" onclick="acceptBloodRequest('${request.id}')">✓ Accept</button>
+                            <button class="btn-reject" onclick="rejectBloodRequest('${request.id}')">✗ Reject</button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         });
@@ -390,17 +439,39 @@ function displayAllHealthData() {
         html += '<p class="no-data">No blood requests submitted</p>';
     }
     
-    html += '<h3>Organ Requests</h3>';
+    html += '<h3>🫀 Organ Requests</h3>';
     if (organRequests.length > 0) {
-        html += '<div class="data-table">';
+        html += '<div class="health-requests-grid">';
         organRequests.forEach(request => {
+            const statusClass = request.status === 'Accepted' ? 'status-accepted' : 
+                                request.status === 'Rejected' ? 'status-rejected' : 'status-pending';
+            const urgencyClass = request.urgency === 'Critical' ? 'urgency-critical' : 
+                                 request.urgency === 'High' ? 'urgency-high' : 'urgency-normal';
+            
             html += `
-                <div class="table-row">
-                    <div class="row-data">
-                        <strong>${sanitizeHTML(request.id)}</strong> - Patient: ${sanitizeHTML(request.patientName)} 
-                        (${sanitizeHTML(request.organType)}, ${sanitizeHTML(request.urgency)}) - ${sanitizeHTML(request.hospital)}
-                        <span class="row-date">${new Date(request.requestedAt).toLocaleDateString()}</span>
+                <div class="health-request-card">
+                    <div class="request-header">
+                        <strong>Request ID: ${sanitizeHTML(request.id)}</strong>
+                        <span class="status-badge ${statusClass}">${sanitizeHTML(request.status)}</span>
                     </div>
+                    <div class="request-details">
+                        <p><strong>Patient Name:</strong> ${sanitizeHTML(request.patientName)}</p>
+                        <p><strong>Organ Type:</strong> <span class="organ-type-badge">${sanitizeHTML(request.organType)}</span></p>
+                        <p><strong>Patient Age:</strong> ${sanitizeHTML(request.patientAge)} years</p>
+                        <p><strong>Urgency:</strong> <span class="urgency-badge ${urgencyClass}">${sanitizeHTML(request.urgency)}</span></p>
+                        <p><strong>Hospital:</strong> ${sanitizeHTML(request.hospital)}</p>
+                        <p><strong>Address:</strong> ${sanitizeHTML(request.hospitalAddress)}</p>
+                        <p><strong>Contact:</strong> ${sanitizeHTML(request.contact)}</p>
+                        <p><strong>Medical Details:</strong> ${sanitizeHTML(request.medicalDetails || 'None')}</p>
+                        <p><strong>Requested:</strong> ${new Date(request.requestedAt).toLocaleDateString()}</p>
+                        <p><strong>Requested By:</strong> User ID ${sanitizeHTML(request.userId)}</p>
+                    </div>
+                    ${request.status === 'Pending' ? `
+                        <div class="request-actions">
+                            <button class="btn-accept" onclick="acceptOrganRequest('${request.id}')">✓ Accept</button>
+                            <button class="btn-reject" onclick="rejectOrganRequest('${request.id}')">✗ Reject</button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         });
@@ -411,4 +482,108 @@ function displayAllHealthData() {
     
     html += '</div>';
     container.innerHTML = html;
+}
+
+function acceptBloodRequest(requestId) {
+    const requests = JSON.parse(localStorage.getItem('bloodRequests') || '[]');
+    const requestIndex = requests.findIndex(r => r.id === requestId);
+    
+    if (requestIndex !== -1) {
+        const request = requests[requestIndex];
+        requests[requestIndex].status = 'Accepted';
+        requests[requestIndex].processedAt = new Date().toISOString();
+        requests[requestIndex].processedBy = currentOfficial ? currentOfficial.email : 'Official';
+        
+        localStorage.setItem('bloodRequests', JSON.stringify(requests));
+        
+        logActivity('blood_request_accepted', {
+            requestId: requestId,
+            patientName: request.patientName,
+            bloodGroup: request.bloodGroup,
+            userId: request.userId,
+            officialEmail: currentOfficial ? currentOfficial.email : 'Official',
+            description: `Official accepted blood donation request from User ${request.userId} (Patient: ${request.patientName}, Blood Group: ${request.bloodGroup})`
+        });
+        
+        alert('Blood request accepted successfully!');
+        displayAllHealthData();
+    }
+}
+
+function rejectBloodRequest(requestId) {
+    const requests = JSON.parse(localStorage.getItem('bloodRequests') || '[]');
+    const requestIndex = requests.findIndex(r => r.id === requestId);
+    
+    if (requestIndex !== -1) {
+        const request = requests[requestIndex];
+        requests[requestIndex].status = 'Rejected';
+        requests[requestIndex].processedAt = new Date().toISOString();
+        requests[requestIndex].processedBy = currentOfficial ? currentOfficial.email : 'Official';
+        
+        localStorage.setItem('bloodRequests', JSON.stringify(requests));
+        
+        logActivity('blood_request_rejected', {
+            requestId: requestId,
+            patientName: request.patientName,
+            bloodGroup: request.bloodGroup,
+            userId: request.userId,
+            officialEmail: currentOfficial ? currentOfficial.email : 'Official',
+            description: `Official rejected blood donation request from User ${request.userId} (Patient: ${request.patientName}, Blood Group: ${request.bloodGroup})`
+        });
+        
+        alert('Blood request rejected.');
+        displayAllHealthData();
+    }
+}
+
+function acceptOrganRequest(requestId) {
+    const requests = JSON.parse(localStorage.getItem('organRequests') || '[]');
+    const requestIndex = requests.findIndex(r => r.id === requestId);
+    
+    if (requestIndex !== -1) {
+        const request = requests[requestIndex];
+        requests[requestIndex].status = 'Accepted';
+        requests[requestIndex].processedAt = new Date().toISOString();
+        requests[requestIndex].processedBy = currentOfficial ? currentOfficial.email : 'Official';
+        
+        localStorage.setItem('organRequests', JSON.stringify(requests));
+        
+        logActivity('organ_request_accepted', {
+            requestId: requestId,
+            patientName: request.patientName,
+            organType: request.organType,
+            userId: request.userId,
+            officialEmail: currentOfficial ? currentOfficial.email : 'Official',
+            description: `Official accepted organ donation request from User ${request.userId} (Patient: ${request.patientName}, Organ: ${request.organType})`
+        });
+        
+        alert('Organ request accepted successfully!');
+        displayAllHealthData();
+    }
+}
+
+function rejectOrganRequest(requestId) {
+    const requests = JSON.parse(localStorage.getItem('organRequests') || '[]');
+    const requestIndex = requests.findIndex(r => r.id === requestId);
+    
+    if (requestIndex !== -1) {
+        const request = requests[requestIndex];
+        requests[requestIndex].status = 'Rejected';
+        requests[requestIndex].processedAt = new Date().toISOString();
+        requests[requestIndex].processedBy = currentOfficial ? currentOfficial.email : 'Official';
+        
+        localStorage.setItem('organRequests', JSON.stringify(requests));
+        
+        logActivity('organ_request_rejected', {
+            requestId: requestId,
+            patientName: request.patientName,
+            organType: request.organType,
+            userId: request.userId,
+            officialEmail: currentOfficial ? currentOfficial.email : 'Official',
+            description: `Official rejected organ donation request from User ${request.userId} (Patient: ${request.patientName}, Organ: ${request.organType})`
+        });
+        
+        alert('Organ request rejected.');
+        displayAllHealthData();
+    }
 }
