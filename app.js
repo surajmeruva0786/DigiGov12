@@ -3561,3 +3561,10 @@ document.getElementById('user-register-form').addEventListener('submit', functio
     });
 });
 
+
+function openEmploymentPage() {
+    if (currentUser) {
+        localStorage.setItem('lastLoginPhone', currentUser.phone);
+    }
+    window.location.href = 'employment.html';
+}
