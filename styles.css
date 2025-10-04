@@ -4380,3 +4380,359 @@ h3 {
         grid-template-columns: 1fr;
     }
 }
+
+.pension-container {
+    padding: 20px;
+}
+
+.pension-section {
+    margin-bottom: 30px;
+}
+
+.pension-section h3 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: clamp(18px, 3vw, 22px);
+}
+
+.pension-programs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.pension-program-card {
+    background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+    border-radius: 12px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    color: white;
+}
+
+.pension-program-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+}
+
+.pension-icon {
+    font-size: clamp(50px, 8vw, 60px);
+    margin-bottom: 10px;
+}
+
+.pension-program-card h4 {
+    color: white;
+    margin: 10px 0 5px 0;
+    font-size: clamp(16px, 2.5vw, 18px);
+}
+
+.pension-program-card p {
+    color: rgba(255,255,255,0.95);
+    font-size: clamp(13px, 2vw, 14px);
+    margin: 0;
+}
+
+.pension-request-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pension-request-card.has-pending-docs {
+    border-left: 4px solid #ff6a00;
+    background: #fff9f5;
+}
+
+.pension-request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pension-request-header h4 {
+    color: #667eea;
+    margin: 0 0 5px 0;
+    font-size: clamp(16px, 2.5vw, 18px);
+}
+
+.pension-request-header small {
+    color: #999;
+    font-size: clamp(12px, 2vw, 13px);
+    display: block;
+}
+
+.pension-status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: clamp(12px, 2vw, 13px);
+    font-weight: 600;
+    text-align: center;
+}
+
+.status-applied {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-under-review {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status-approved {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-rejected {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.pension-request-details {
+    margin: 15px 0;
+    font-size: clamp(13px, 2vw, 14px);
+}
+
+.pension-request-details p {
+    margin: 8px 0;
+    color: #555;
+}
+
+.pension-status-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 25px 0;
+    padding: 0 10px;
+}
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.timeline-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ddd;
+    border: 3px solid #ddd;
+    transition: all 0.3s;
+}
+
+.timeline-step.completed .timeline-dot {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.timeline-label {
+    margin-top: 8px;
+    font-size: clamp(11px, 1.8vw, 12px);
+    color: #999;
+    text-align: center;
+    max-width: 80px;
+}
+
+.timeline-step.completed .timeline-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.timeline-line {
+    flex: 1;
+    height: 3px;
+    background: #ddd;
+    margin: 0 5px;
+    transition: all 0.3s;
+}
+
+.timeline-line.completed {
+    background: #667eea;
+}
+
+.pension-documents-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.pension-documents-section h5 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: clamp(14px, 2vw, 16px);
+}
+
+.pension-documents-section .no-docs {
+    color: #999;
+    font-style: italic;
+    font-size: clamp(12px, 2vw, 13px);
+}
+
+.doc-item {
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.doc-item span {
+    font-size: clamp(13px, 2vw, 14px);
+    color: #333;
+}
+
+.doc-item small {
+    color: #999;
+    font-size: clamp(11px, 1.8vw, 12px);
+}
+
+.pending-docs-alert {
+    background: #fff3e0;
+    border: 1px solid #ff9800;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.pending-docs-alert strong {
+    color: #f57c00;
+    display: block;
+    margin-bottom: 8px;
+    font-size: clamp(13px, 2vw, 14px);
+}
+
+.pending-docs-alert ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.pending-docs-alert li {
+    color: #555;
+    margin: 5px 0;
+    font-size: clamp(12px, 2vw, 13px);
+}
+
+.btn-upload-doc {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: clamp(13px, 2vw, 14px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-upload-doc:hover {
+    opacity: 0.9;
+}
+
+.pension-reminder-notification {
+    background: #fff3e0;
+    border-left: 4px solid #ff9800;
+    padding: 15px 20px;
+    margin: 0 20px 20px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pension-reminder-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.reminder-icon {
+    font-size: clamp(30px, 5vw, 40px);
+    flex-shrink: 0;
+}
+
+.reminder-text {
+    flex: 1;
+}
+
+.reminder-text strong {
+    display: block;
+    color: #f57c00;
+    margin-bottom: 5px;
+    font-size: clamp(14px, 2.5vw, 16px);
+}
+
+.reminder-text p {
+    color: #555;
+    margin: 0;
+    font-size: clamp(12px, 2vw, 14px);
+}
+
+.reminder-close {
+    background: none;
+    border: none;
+    font-size: clamp(20px, 3vw, 24px);
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.reminder-close:hover {
+    color: #666;
+}
+
+.file-error {
+    background: #ffebee;
+    color: #d32f2f;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: clamp(12px, 2vw, 13px);
+}
+
+@media (max-width: 768px) {
+    .pension-programs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pension-status-timeline {
+        padding: 0 5px;
+    }
+    
+    .timeline-label {
+        font-size: 10px;
+        max-width: 60px;
+    }
+    
+    .pension-reminder-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (min-width: 768px) {
+    .pension-programs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .pension-programs-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
