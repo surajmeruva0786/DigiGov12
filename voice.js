@@ -186,6 +186,10 @@ function handleVoiceCommand(command) {
         'pay bill': showBillPayments,
         'documents': showDocuments,
         'document': showDocuments,
+        'health services': showHealthServices,
+        'health': showHealthServices,
+        'blood donor': showHealthServices,
+        'organ donor': showHealthServices,
         'dashboard': () => {
             if (currentUser) showUserDashboard();
             else if (currentOfficial) showOfficialDashboard();

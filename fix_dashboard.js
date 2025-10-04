@@ -40,6 +40,9 @@ function showOfficialTab(tab) {
         case 'activity':
             displayAllActivityLogs();
             break;
+        case 'health':
+            displayAllHealthData();
+            break;
     }
 }
 

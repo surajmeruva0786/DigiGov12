@@ -262,6 +262,11 @@
                     <h3>Digital ID Card</h3>
                     <p>View your digital ID</p>
                 </div>
+                <div class="module-block" style="background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);" onclick="showHealthServices()">
+                    <div class="module-icon">🏥</div>
+                    <h3>Health Services</h3>
+                    <p>Blood & Organ Donation</p>
+                </div>
             </div>
         </div>
 
@@ -674,6 +679,7 @@
                     <button class="official-tab-btn" data-tab="documents" onclick="showOfficialTab('documents')">📄 Documents</button>
                     <button class="official-tab-btn" data-tab="bills" onclick="showOfficialTab('bills')">💰 Bill Payments</button>
                     <button class="official-tab-btn" data-tab="activity" onclick="showOfficialTab('activity')">📊 Activity Logs</button>
+                    <button class="official-tab-btn" data-tab="health" onclick="showOfficialTab('health')">🏥 Health Services</button>
                 </div>
 
                 <div id="official-tab-users" class="official-tab-content active">
@@ -709,6 +715,11 @@
                 <div id="official-tab-activity" class="official-tab-content">
                     <h3>Activity Logs</h3>
                     <div id="official-activity-list"></div>
+                </div>
+
+                <div id="official-tab-health" class="official-tab-content">
+                    <h3>Health Services Data</h3>
+                    <div id="official-health-data"></div>
                 </div>
             </div>
         </div>
@@ -883,6 +894,282 @@
                 </div>
             </div>
         </div>
+
+        <div id="health-services-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showUserDashboard()">← Back</button>
+                <h2>🏥 Health Services</h2>
+            </div>
+            <div class="health-services-container">
+                <div class="health-section">
+                    <h3 class="section-title">💉 Donation Forms</h3>
+                    <div class="health-buttons">
+                        <button class="health-btn blood-donor-btn" onclick="showBloodDonorForm()">
+                            🩸 Register as Blood Donor
+                        </button>
+                        <button class="health-btn organ-donor-btn" onclick="showOrganDonorForm()">
+                            🫀 Register as Organ Donor
+                        </button>
+                    </div>
+                </div>
+
+                <div class="health-section">
+                    <h3 class="section-title">🏥 Request Forms</h3>
+                    <div class="health-buttons">
+                        <button class="health-btn blood-request-btn" onclick="showBloodRequestForm()">
+                            🩸 Request Blood
+                        </button>
+                        <button class="health-btn organ-request-btn" onclick="showOrganRequestForm()">
+                            🫀 Request Organ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="health-section">
+                    <h3 class="section-title">📋 My Health Records</h3>
+                    <div class="health-tabs">
+                        <button class="health-tab-btn active" onclick="showHealthTab('donations')">My Donations</button>
+                        <button class="health-tab-btn" onclick="showHealthTab('requests')">My Requests</button>
+                    </div>
+                    <div id="health-tab-donations" class="health-tab-content active">
+                        <div id="my-donations-display"></div>
+                    </div>
+                    <div id="health-tab-requests" class="health-tab-content">
+                        <div id="my-requests-display"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="blood-donor-form-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showHealthServices()">← Back</button>
+                <h2>🩸 Blood Donor Registration</h2>
+            </div>
+            <div class="form-container">
+                <form id="blood-donor-form">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="blood-donor-name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Group *</label>
+                        <select id="blood-donor-group" required>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Age *</label>
+                        <input type="number" id="blood-donor-age" placeholder="Enter your age" min="18" max="65" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number *</label>
+                        <input type="tel" id="blood-donor-contact" placeholder="10-digit phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location/City *</label>
+                        <input type="text" id="blood-donor-location" placeholder="Enter your city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Availability *</label>
+                        <select id="blood-donor-availability" required>
+                            <option value="">Select Availability</option>
+                            <option value="Immediately Available">Immediately Available</option>
+                            <option value="Available in 24 hours">Available in 24 hours</option>
+                            <option value="Available in 48 hours">Available in 48 hours</option>
+                            <option value="Available on weekends">Available on weekends</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical History (Optional)</label>
+                        <textarea id="blood-donor-medical" placeholder="Any relevant medical information" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Register as Blood Donor</button>
+                    <button type="button" class="btn-secondary" onclick="showHealthServices()">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="organ-donor-form-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showHealthServices()">← Back</button>
+                <h2>🫀 Organ Donor Registration</h2>
+            </div>
+            <div class="form-container">
+                <form id="organ-donor-form">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="organ-donor-name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Organ Type *</label>
+                        <select id="organ-donor-type" required>
+                            <option value="">Select Organ Type</option>
+                            <option value="Kidney">Kidney</option>
+                            <option value="Liver">Liver</option>
+                            <option value="Heart">Heart</option>
+                            <option value="Lungs">Lungs</option>
+                            <option value="Pancreas">Pancreas</option>
+                            <option value="Cornea">Cornea</option>
+                            <option value="Bone Marrow">Bone Marrow</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Age *</label>
+                        <input type="number" id="organ-donor-age" placeholder="Enter your age" min="18" max="70" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number *</label>
+                        <input type="tel" id="organ-donor-contact" placeholder="10-digit phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location/City *</label>
+                        <input type="text" id="organ-donor-location" placeholder="Enter your city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical Details *</label>
+                        <textarea id="organ-donor-medical" placeholder="Enter relevant medical information, blood group, etc." rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="organ-donor-consent" required>
+                            I consent to donate my organ(s) and understand the medical procedures involved
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary">Register as Organ Donor</button>
+                    <button type="button" class="btn-secondary" onclick="showHealthServices()">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="blood-request-form-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showHealthServices()">← Back</button>
+                <h2>🩸 Blood Request</h2>
+            </div>
+            <div class="form-container">
+                <form id="blood-request-form">
+                    <div class="form-group">
+                        <label>Patient Name *</label>
+                        <input type="text" id="blood-request-patient" placeholder="Enter patient name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Group Required *</label>
+                        <select id="blood-request-group" required>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Units Required *</label>
+                        <input type="number" id="blood-request-units" placeholder="Number of units" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Urgency Level *</label>
+                        <select id="blood-request-urgency" required>
+                            <option value="">Select Urgency</option>
+                            <option value="Critical - Immediate">Critical - Immediate</option>
+                            <option value="Urgent - Within 24 hours">Urgent - Within 24 hours</option>
+                            <option value="Moderate - Within 48 hours">Moderate - Within 48 hours</option>
+                            <option value="Normal - Within a week">Normal - Within a week</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hospital Name *</label>
+                        <input type="text" id="blood-request-hospital" placeholder="Enter hospital name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hospital Address *</label>
+                        <textarea id="blood-request-address" placeholder="Enter complete hospital address" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number *</label>
+                        <input type="tel" id="blood-request-contact" placeholder="10-digit phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Information</label>
+                        <textarea id="blood-request-info" placeholder="Any additional details" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Submit Blood Request</button>
+                    <button type="button" class="btn-secondary" onclick="showHealthServices()">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="organ-request-form-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showHealthServices()">← Back</button>
+                <h2>🫀 Organ Request</h2>
+            </div>
+            <div class="form-container">
+                <form id="organ-request-form">
+                    <div class="form-group">
+                        <label>Patient Name *</label>
+                        <input type="text" id="organ-request-patient" placeholder="Enter patient name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Organ Required *</label>
+                        <select id="organ-request-type" required>
+                            <option value="">Select Organ Type</option>
+                            <option value="Kidney">Kidney</option>
+                            <option value="Liver">Liver</option>
+                            <option value="Heart">Heart</option>
+                            <option value="Lungs">Lungs</option>
+                            <option value="Pancreas">Pancreas</option>
+                            <option value="Cornea">Cornea</option>
+                            <option value="Bone Marrow">Bone Marrow</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Patient Age *</label>
+                        <input type="number" id="organ-request-age" placeholder="Enter patient age" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Urgency Level *</label>
+                        <select id="organ-request-urgency" required>
+                            <option value="">Select Urgency</option>
+                            <option value="Critical - Life Threatening">Critical - Life Threatening</option>
+                            <option value="Urgent - High Priority">Urgent - High Priority</option>
+                            <option value="Moderate - Medium Priority">Moderate - Medium Priority</option>
+                            <option value="Normal - On Waitlist">Normal - On Waitlist</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hospital Name *</label>
+                        <input type="text" id="organ-request-hospital" placeholder="Enter hospital name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hospital Address *</label>
+                        <textarea id="organ-request-address" placeholder="Enter complete hospital address" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number *</label>
+                        <input type="tel" id="organ-request-contact" placeholder="10-digit phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical Details *</label>
+                        <textarea id="organ-request-medical" placeholder="Relevant medical history, blood group, compatibility requirements" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Submit Organ Request</button>
+                    <button type="button" class="btn-secondary" onclick="showHealthServices()">Cancel</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div id="voice-controls" class="voice-controls">
@@ -913,6 +1200,7 @@
                 <div class="voice-command-item">👶 <strong>Children</strong> - Opens children management</div>
                 <div class="voice-command-item">💰 <strong>Bill Payments</strong> - Opens bill payments</div>
                 <div class="voice-command-item">📄 <strong>Documents</strong> - Opens documents section</div>
+                <div class="voice-command-item">🏥 <strong>Health Services</strong> - Opens health services</div>
                 <div class="voice-command-item">🏠 <strong>Dashboard</strong> - Returns to dashboard</div>
                 <div class="voice-command-item">📊 <strong>Analytics</strong> - Opens analytics</div>
                 <div class="voice-command-item">🚪 <strong>Logout</strong> - Logs you out</div>
@@ -931,5 +1219,6 @@
     <script src="voice.js"></script>
     <script src="voice-integration.js"></script>
     <script src="digital-id-card.js"></script>
+    <script src="health-services.js"></script>
 </body>
 </html>
