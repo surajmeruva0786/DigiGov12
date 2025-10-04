@@ -1,13 +1,3 @@
-let currentUser = null;
-
-function initCurrentUser() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const lastLoginPhone = localStorage.getItem('lastLoginPhone');
-    if (lastLoginPhone) {
-        currentUser = users.find(u => u.phone === lastLoginPhone);
-    }
-}
-
 function initializeJobsData() {
     if (!localStorage.getItem('jobs')) {
         const defaultJobs = [
@@ -362,11 +352,9 @@ function closeJobDetails() {
 }
 
 function showJobApplicationForm(jobId) {
-    initCurrentUser();
-    
     if (!currentUser) {
         alert('Please login to the main portal first to apply for jobs.');
-        window.location.href = 'index.html';
+        showUserLogin();
         return;
     }
     
@@ -417,11 +405,9 @@ function validateResumeFile() {
 function submitJobApplication(event) {
     event.preventDefault();
     
-    initCurrentUser();
-    
     if (!currentUser) {
         alert('Please login to apply for jobs');
-        window.location.href = 'index.html';
+        showUserLogin();
         return;
     }
     
@@ -499,7 +485,6 @@ function cancelJobApplication() {
 }
 
 function loadUserApplications() {
-    initCurrentUser();
     
     const applicationsContainer = document.getElementById('user-applications-list');
     if (!applicationsContainer) return;
@@ -566,7 +551,6 @@ function showEmploymentTab(tab) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    initCurrentUser();
     initializeJobsData();
     displayJobs();
     

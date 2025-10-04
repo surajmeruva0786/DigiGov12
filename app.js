@@ -392,6 +392,12 @@ function showGovernmentSchemes() {
     showScreen('government-schemes-screen');
 }
 
+function showEmploymentServices() {
+    initializeJobsData();
+    displayJobs();
+    showScreen('employment-services-screen');
+}
+
 function displaySchemes(filter = '') {
     const state = getStateFromAadhaar(currentUser.aadhaar);
     const schemes = JSON.parse(localStorage.getItem('schemes') || '[]');
