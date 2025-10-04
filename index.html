@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Government Service Portal</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="app">
@@ -69,6 +71,10 @@
             </div>
             <div class="form-container">
                 <form id="user-register-form">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="user-full-name" placeholder="Enter your full name" required>
+                    </div>
                     <div class="form-group">
                         <label data-i18n="userRegister.aadhaar">Aadhaar Number *</label>
                         <input type="text" id="user-aadhaar" data-i18n-placeholder="userRegister.aadhaarPlaceholder" placeholder="12-digit Aadhaar number" required>
@@ -250,6 +256,11 @@
                     <div class="module-icon">📄</div>
                     <h3 data-i18n="dashboard.documents">Documents</h3>
                     <p data-i18n="dashboard.documentsDesc">Manage documents</p>
+                </div>
+                <div class="module-block" style="background: linear-gradient(135deg, #f77062 0%, #fe5196 100%);" onclick="showDigitalIDCard()">
+                    <div class="module-icon">🪪</div>
+                    <h3>Digital ID Card</h3>
+                    <p>View your digital ID</p>
                 </div>
             </div>
         </div>
@@ -813,6 +824,65 @@
                 </div>
             </div>
         </div>
+
+        <div id="digital-id-card-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showUserDashboard()">← Back</button>
+                <h2>🪪 Digital ID Card</h2>
+            </div>
+            <div class="digital-id-container">
+                <div id="no-id-card-message" class="no-id-message">
+                    <div class="icon-large">🪪</div>
+                    <h3>No Digital ID Card Found</h3>
+                    <p>Complete your registration to generate your digital ID card</p>
+                    <button class="btn-primary" onclick="generateDigitalID()">Generate ID Card</button>
+                </div>
+                
+                <div id="id-card-display" class="id-card-display" style="display: none;">
+                    <div id="id-card" class="id-card">
+                        <div class="id-card-header">
+                            <h3>GOVERNMENT OF INDIA</h3>
+                            <p>Digital Identity Card</p>
+                        </div>
+                        <div class="id-card-body">
+                            <div class="id-card-photo">
+                                <img id="id-photo" src="" alt="Photo">
+                            </div>
+                            <div class="id-card-info">
+                                <div class="id-field">
+                                    <label>Name:</label>
+                                    <span id="id-name"></span>
+                                </div>
+                                <div class="id-field">
+                                    <label>Aadhaar:</label>
+                                    <span id="id-aadhaar"></span>
+                                </div>
+                                <div class="id-field">
+                                    <label>Address:</label>
+                                    <span id="id-address"></span>
+                                </div>
+                                <div class="id-field">
+                                    <label>Phone:</label>
+                                    <span id="id-phone"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="id-card-qr">
+                            <div id="qr-code"></div>
+                            <p class="qr-label">Scan for verification</p>
+                        </div>
+                        <div class="id-card-footer">
+                            <p>Valid Government ID | Digital India Initiative</p>
+                        </div>
+                    </div>
+                    
+                    <div class="id-card-actions">
+                        <button class="btn-primary" onclick="downloadIDCard()">📥 Download ID Card</button>
+                        <button class="btn-secondary" onclick="deleteIDCard()">🗑️ Delete ID Card</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="voice-controls" class="voice-controls">
@@ -860,5 +930,6 @@
     <script src="fix_dashboard.js"></script>
     <script src="voice.js"></script>
     <script src="voice-integration.js"></script>
+    <script src="digital-id-card.js"></script>
 </body>
 </html>

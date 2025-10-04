@@ -69,6 +69,7 @@ document.getElementById('user-register-form').addEventListener('submit', functio
     e.preventDefault();
     
     const aadhaar = document.getElementById('user-aadhaar').value;
+    const fullName = document.getElementById('user-full-name').value;
     const phone = document.getElementById('user-phone').value;
     const email = document.getElementById('user-email').value;
     const password = document.getElementById('user-password').value;
@@ -104,6 +105,7 @@ document.getElementById('user-register-form').addEventListener('submit', functio
         }
         
         const newUser = {
+            name: fullName,
             aadhaar,
             phone,
             email,
@@ -151,6 +153,10 @@ document.getElementById('user-login-form').addEventListener('submit', function(e
     
     if (user) {
         currentUser = user;
+        
+        if (typeof autoGenerateIDOnRegistration === 'function') {
+            autoGenerateIDOnRegistration();
+        }
         
         const voicePreference = localStorage.getItem('voicePreference');
         if (voicePreference === null) {
